@@ -242,7 +242,6 @@ def tag_theme(request):
     return HttpResponse()
 
 def user_mgmt(request):
-    print "???"
     response = {}
     forum = Forum.objects.get(id=request.session['forum_id'])
     action = request.REQUEST.get('action')

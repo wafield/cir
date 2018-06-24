@@ -95,11 +95,7 @@ def enter_forum(request, forum_url, phase_name):  # access /forum_name
     context['forum_description'] = forum.description
     context['phase_info'] = _get_phases(forum, phase_name)
 
-    context["pinmessages"] = []
     complexPhase = ComplexPhase.objects.filter(forum = forum, name = phase_name)[0]
-    pinMessages = PinMessage.objects.filter(phase = complexPhase, is_show = True)
-    for pinMessage in pinMessages:
-        context["pinmessages"].append(pinMessage)
 
     index_html = ''
     if phase_name == 'free_discuss':
@@ -176,8 +172,8 @@ def _get_phases(forum, selected_phase):
     results['selected_phase'] = selected_phase
     results['selected_phase_name'] = _get_full_phase_name(selected_phase)
     results['phases'] = []
-    # for name in ['free_discuss','nugget', 'extract', 'categorize', 'improve', 'finished']:
-    for name in ['free_discuss','nugget', 'finished']:
+    for name in ['free_discuss','nugget', 'extract', 'categorize', 'improve', 'finished']:
+    # for name in ['free_discuss','nugget', 'finished']:
         phase_info = {
             'name': name,
             'fullname': _get_full_phase_name(name)

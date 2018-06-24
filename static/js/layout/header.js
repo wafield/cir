@@ -31,14 +31,8 @@ define([
 				}
 			}
 
-			$("body").on("click", "#instruction-btn", function(){
-				// $("#instruction-modal").modal("show");
-				$(".pin-message").toggleClass("hidden");
-			})
-
 			$('#issue-desc-btn').popup({
-				position : 'bottom right',
-				target   : '#issue-desc-btn'
+				position : 'bottom left',
 			});
 
 			$('.pin-message .close')

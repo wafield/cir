@@ -202,39 +202,6 @@ define([
 		return promise;
 	}
 
-	module.get_theme_list = function() {
-		var promise = $.ajax({
-			url: '/phase2/get_theme_list/',
-			type: 'post',
-			data: {},
-			success: function(xhr) {
-				module.Theme.init();
-				for (var i = 0; i < xhr.themes.length; i++) {
-					var theme = xhr.themes[i];
-					module.Theme.put(theme.name, theme.id);
-				}
-				module.Theme.initColorSchema();
-				$("#nugget-list-theme").empty();
-				var content_alltheme = "All themes are shown."
-				$("#nugget-list-theme").append('<option value="-1" data-content="' + content_alltheme + '">All</option>');
-				$("#theme-info-popup .content").text(content_alltheme);
-				for (var i = 0; i < xhr.themes.length; i++) {
-					var theme_name = xhr.themes[i].name
-					var theme_id = xhr.themes[i].id
-					var theme_description = xhr.themes[i].description
-					$("#nugget-list-theme").append('<option value="' + theme_id + '" data-content="' + theme_description + '">' + theme_name + '</option>');
-					$("#nugget-tool-bar-themes").append('<option value="' + theme_id + '">' + theme_name + '</option>');
-					$("#theme-top").append('<a class="ui label" ' + 'data-tooltip="' + theme_description + '" data-position="right center">'+ theme_name +'</a>');
-				}
-			},
-			error: function(xhr) {
-				if (xhr.status == 403) {
-					Utils.notify('error', xhr.responseText);
-				}
-			}
-		});	
-		return promise;
-	}
 
 
 	module.get_author_list = function() {
@@ -355,8 +322,8 @@ define([
 				$(".avatar1").popup();
 
 				module.applyFilter();
-				$(".workbench-nugget .action-bar").hide();
-				$(".workbench-nugget .divider").hide();
+				// $(".workbench-nugget .action-bar").hide();
+				// $(".workbench-nugget .divider").hide();
 			},			
 			error: function(xhr) {
 				if (xhr.status == 403) {
@@ -966,13 +933,6 @@ define([
 			objDiv.scrollTop = objDiv.scrollHeight;
 		});
 
-		$("body").on("click", ".workbench-nugget", function(){
-			$(".workbench-nugget .action-bar").hide();
-			$(".workbench-nugget .divider").hide();
-			$($(this).find(".action-bar")).show();
-			$($(this).find(".divider")).show();
-		});
-
 		$("#theme-info").popup({
 			position: 	'bottom center',
 		    popup: 		'#theme-info-popup'
@@ -985,7 +945,7 @@ define([
 		$('#document-toc-button').popup({
 			on: 'click',
 		    popup: '#document-toc-container', 
-		    position: 'bottom left',
+		    position: 'bottom right',
 		});
 		
 		$('.ui.rating').rating();
@@ -1047,12 +1007,12 @@ define([
 			});
 		});
 		$("body").on("click", ".source-nugget", function(e) {
-			var claim_id = $(this).closest(".src_claim").attr("data-id");
+			var hl_id = $(this).closest(".workbench-nugget").attr("data-hl-id");
 			$.ajax({
 				url: '/workbench/api_get_doc_by_hl_id/',
 				type: 'post',
 				data: {
-					'claim_id': claim_id,
+					'hl_id': hl_id,
 				},
 				success: function(xhr) {
 					var hl_id = xhr.hl_id;
@@ -1494,6 +1454,7 @@ define([
 	};
 
 	module.applyFilter = function() {
+		return; // noop.
 
 		$( ".workbench-nugget" ).hide();
 		$( ".workbench-nugget" ).filter(function() {
@@ -1518,11 +1479,9 @@ define([
 	}
 
 	module.initLayout = function() {
-		$.when(module.get_theme_list()).done(function(promise1) {
-			$.when(module.get_nugget_list()).done(function(promise1) {
-				module.get_document_toc();
-			  	module.initEvents();
-			});		
+		$.when(module.get_nugget_list()).done(function(promise1) {
+			module.get_document_toc();
+			module.initEvents();
 		});
 
 		module.get_author_list();

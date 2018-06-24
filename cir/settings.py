@@ -2,11 +2,7 @@
 import os
 import socket
 
-# automatically determine debug status
-if 'cai' in socket.getfqdn():
-    DEBUG = False
-else:
-    DEBUG = True
+DEBUG = True
 
 TEMPLATE_DEBUG = DEBUG
 
@@ -18,50 +14,26 @@ MANAGERS = ADMINS
 
 server_ip = socket.gethostbyname(socket.gethostname())
 
-GEOS_LIBRARY_PATH = 'C:/OSGeo4W64/bin/geos_c.dll'
-
-# determine if the IST DB can be connected. if not, use local db.
-if '130.203' in server_ip:
-    SERVER_HOST = '130.203.136.141'
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.contrib.gis.db.backends.postgis',
-            'NAME': 'cir_backup_20161125',  # Or path to database file if using sqlite3.
-            'USER': 'postgres',
-            'PASSWORD': 'asdf1234',
-            'HOST': SERVER_HOST,
-            'PORT': '',  # Set to empty string for default.
-        },
-        'dev': {
-            'ENGINE': 'django.contrib.gis.db.backends.postgis',
-            'NAME': 'cir_backup_20161125',  # Or path to database file if using sqlite3.
-            'USER': 'postgres',
-            'PASSWORD': 'asdf1234',
-            'HOST': SERVER_HOST,
-            'PORT': '',  # Set to empty string for default.
-        }
+# on local dev -- use different DB setups
+SERVER_HOST = '127.0.0.1'
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'cir_backup_20161125',  # Or path to database file if using sqlite3.
+        'USER': 'postgres',
+        'PASSWORD': 'asdf1234',
+        'HOST': SERVER_HOST,
+        'PORT': '',  # Set to empty string for default.
+    },
+    'dev': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'cir_backup_20161125',  # Or path to database file if using sqlite3.
+        'USER': 'postgres',
+        'PASSWORD': 'asdf1234',
+        'HOST': SERVER_HOST,
+        'PORT': '',  # Set to empty string for default.
     }
-else:
-    # on local dev -- use different DB setups
-    SERVER_HOST = '127.0.0.1'
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.contrib.gis.db.backends.postgis',
-            'NAME': 'cir_backup_20161125',  # Or path to database file if using sqlite3.
-            'USER': 'homestead',
-            'PASSWORD': 'secret',
-            'HOST': SERVER_HOST,
-            'PORT': '',  # Set to empty string for default.
-        },
-        'dev': {
-            'ENGINE': 'django.contrib.gis.db.backends.postgis',
-            'NAME': 'cir_backup_20161125',  # Or path to database file if using sqlite3.
-            'USER': 'homestead',
-            'PASSWORD': 'secret',
-            'HOST': SERVER_HOST,
-            'PORT': '',  # Set to empty string for default.
-        }
-    }
+}
 
 # dispatcher url
 if DEBUG:

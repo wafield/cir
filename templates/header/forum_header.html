@@ -1,6 +1,9 @@
 <div class="ui top fixed menu">
-	<!-- <a href="/"><img style="height:40px;vertical-align:middle;margin:0 1em;" src="/media/gdlogo.png" alt="Geodeliberator Logo"></a> -->
-	<div id="issue-desc-btn" class="item" data-content="{{ forum_description }}" data-variation="very wide">
+	<div id="issue-desc-btn"
+         class="item"
+         data-title="Issue Description"
+         data-content="{{ forum_description }}"
+         data-variation="very wide">
 		{{ forum_name }}
 	</div>
 	<div class="ui dropdown blue item" tabindex="0">
@@ -12,16 +15,6 @@
 		{% endfor %}
 		</div>
 	</div>
-	
-	<a class="ui item" id="instruction-btn">
-		{% if pinmessages|length > 0 %}
-			{% with pinmessages|first as message %}
-	    		{{ message.content|truncatechars:100 }} <div class="ui teal basic label">more</div>
-			{% endwith %}
-		{% else %}
-			(No pinned message)
-		{% endif %}
-	</a>
 
 	<a class="ui item" target="_blank" href="/static/tutorial/index.html">
 		<i class="book  icon"></i>
@@ -30,7 +23,7 @@
 
 	<a id="qa-panel-toggle" class="ui item" href="#">
     	<i class="help circle icon"></i>
-    	Questions
+    	Issue Q & A
 	</a>
 
 	{% if user_id == '-1' %}

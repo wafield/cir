@@ -1,7 +1,7 @@
 {% if highlights %}
 	{% for highlight in highlights %}
 		{% if highlight.is_nugget %}
-			<div class="ui segment workbench-nugget nugget-related" style="margin: 5px;" data-hl-id = {{ highlight.id }} author-id = "{{ highlight.author_id }}" doc-id = {{ highlight.doc_id }} theme-id = {{ highlight.theme_id }}>
+			<div class="item workbench-nugget nugget-related" style="padding: 10px 0;" data-hl-id = {{ highlight.id }} author-id = "{{ highlight.author_id }}" doc-id = {{ highlight.doc_id }} theme-id = {{ highlight.theme_id }}>
 				<a class="ui small red right corner label nugget-select-mark" style="display:none;">
 					<i class="checkmark icon"></i>
 				</a>
@@ -10,14 +10,12 @@
 						{{ highlight.text }}
 					</div>
 				</div>
-				<div class="ui divider" style="margin: 5px 0;"></div>
-				<div class="discription action-bar" style="color:rgba(0,0,0,.4);">
-					<a class="ui basic label theme-label" theme-id="{{ highlight.theme_id }}" data-content="{{ highlight.theme_desc }}">{{ highlight.theme }}</a>
+				<div class="description action-bar" style="margin-top: 10px; color:rgba(0,0,0,.4);">
 					<a class="ui basic image label avatar1" data-id="{{ highlight.author_id }}" data-content="{{ highlight.author_intro }}" data-inverted="">
 						<img src="{{ STATIC_URL }}/static/pictures/{{ highlight.author_id }}.png" onerror="this.src = '{{ STATIC_URL }}/static/pictures/default-avatar.png';">
 						{{ highlight.author_name }}
 					</a>
-					<span class="ui basic label">{{ highlight.created_at_pretty }}</span>
+					{{ highlight.created_at_pretty }}
 					<div class="actions" style="margin-top:5px;">
 						<a href="#" class="item source-nugget">Context</a>
 						<span> | </span>
@@ -25,8 +23,6 @@
 							{% if highlight.comment_number != 0 %}
 								<a href="#" class="item comment-nugget-number">({{ highlight.comment_number }})</a>
 							{% endif %}
-						<span> | </span>
-						<a href="#" class="item reassign-nugget">Change theme</a>
 						{% if highlight.is_author %}
 							<span> | </span>
 							<a href="#" class="item delete-nugget">Delete</a>

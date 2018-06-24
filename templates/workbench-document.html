@@ -1,12 +1,13 @@
 <div class="workbench-doc-item" data-id="{{ doc_id }}">
 <h3 style="text-align: center;">{{ doc_name }}</h3>
 {% for section in sections %} 
-	<div class="ui raised segment workbench-documents-column">
+	<div class="workbench-documents-column">
 		{% if section.title %}
 			<h3 class="ui header section-header" data-id="{{ section.id }}">{{ section.title }}</h3>
 		{% endif %}
 		<div>{{ section.update_at }}</div>
 		<div class="section-content noselect" data-id="{{ section.id }}">{{ section.segmented_text|safe }}</div>
 	</div>
+    <hr />
 {% endfor %}
 </div>
