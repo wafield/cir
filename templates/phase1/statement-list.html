@@ -27,7 +27,9 @@
                             {{ src_claim.author_name }}
                         </a>
                         {{ src_claim.created_at_pretty }}
-                        <div class="actions" style="margin-top:5px;">
+                        <div class="actions" style="margin-top:5px;float:right;">
+                            <a href="#" class="item source-nugget">Context</a>
+                            <span> | </span>
                             <a href="#" class="item comment-nugget">Comment</a>
                             {% if src_claim.comment_number != 0 %}
                                 <a href="#" class="item comment-nugget-number">({{ src_claim.comment_number }})</a>

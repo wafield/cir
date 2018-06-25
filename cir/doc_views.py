@@ -88,9 +88,9 @@ def api_highlight(request):
                 highlight = Highlight(start_pos=start, end_pos=end, context=context, author=request.user, text=text, created_at = now, is_nugget = False)
             else: # real nugget
                 highlight = Highlight(start_pos=start, end_pos=end, context=context, author=request.user, text=text, created_at = now, is_nugget = True)
-            if (request.REQUEST.get('theme_id')):
-                theme_id = request.REQUEST.get('theme_id')
-                highlight.theme = ClaimTheme.objects.get(id = theme_id)
+            # if (request.REQUEST.get('theme_id')):
+            #     theme_id = request.REQUEST.get('theme_id')
+            #     highlight.theme = ClaimTheme.objects.get(id = theme_id)
             highlight.save()
             response['highlight_id'] = highlight.id
             # then create the content
@@ -120,7 +120,14 @@ def api_highlight(request):
             now = timezone.now()
             newClaim = Claim(forum_id=request.session['forum_id'], author=request.user, created_at=now, updated_at=now, content=content, claim_category=category)
             newClaim.save()
-            claim_version = ClaimVersion(forum_id=request.session['forum_id'], author=request.user, content=text, created_at=now, updated_at=now, claim=newClaim, is_adopted=True)
+            claim_version = ClaimVersion(
+                forum_id=request.session['forum_id'],
+                author=request.user,
+                content=text,
+                created_at=now,
+                updated_at=now,
+                claim=newClaim,
+                is_adopted=True)
             claim_version.save()
             newHighlightClaim = HighlightClaim(claim_id=newClaim.id, highlight_id=highlight.id)
             newHighlightClaim.save()
@@ -129,8 +136,12 @@ def api_highlight(request):
             nugget_id = request.REQUEST['nugget_id'].split(" ")[0]
             claim = HighlightClaim.objects.filter(highlight_id= Highlight.objects.get(id=nugget_id))[0].claim
         slot = Claim.objects.get(id=request.REQUEST['slot_id'])
+
+        # create the link from source claim (newly added nugget) to target claim (question slot).
         if not ClaimReference.objects.filter(refer_type='stmt', from_claim=claim, to_claim=slot).exists():
-            ClaimReference.objects.create(refer_type='stmt', from_claim=claim, to_claim=slot)      
+            ClaimReference.objects.create(refer_type='stmt', from_claim=claim, to_claim=slot)
+
+        # add entry of claim assignment activity to the slot.
         if 'actual_user_id' in request.session:
             actual_author = User.objects.get(id=request.session['actual_user_id'])
             SlotAssignment.objects.create(forum_id=request.session['forum_id'], user=actual_author, delegator=request.user,

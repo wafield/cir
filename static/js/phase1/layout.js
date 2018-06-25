@@ -608,7 +608,7 @@ define([
 		// static event listeners
 		$('body').on('click', '.claim-reword-btn', function() {
 			var slot_id = $(this).closest(".slot").attr("data-id");
-			$('#slot-detail').find(".reword.form'").transition('slide down', '500ms');
+			$('#slot-detail').find(".reword.form").transition('slide down', '500ms');
 		}).on('click', '.reword.form .submit.button', function() {
 			var slot_id = $(this).closest(".slot").attr("data-id");
 			var content = $('#slot-detail').find(".claim.reword.editor").val();
@@ -934,7 +934,7 @@ define([
 		$("#nugget-list-theme").change(function() {
 			var content = $("#nugget-list-theme option[value=" + $(this).val() + "]").attr("data-content");
 			$("#theme-info-popup .content").text(content);
-			module.applyFilter();
+			// module.applyFilter();
 		});
 
 		// $("#nugget-list-author").change(function() {
@@ -987,12 +987,12 @@ define([
 			});
 		});
 		$("body").on("click", ".source-nugget", function(e) {
-			var hl_id = $(this).closest(".src_claim").attr("data-id");
+			var claim_id = $(this).closest(".src_claim").attr("data-id");
 			$.ajax({
 				url: '/workbench/api_get_doc_by_hl_id/',
 				type: 'post',
 				data: {
-					'hl_id': hl_id,
+					'claim_id': claim_id,
 				},
 				success: function(xhr) {
 					var hl_id = xhr.hl_id;
@@ -1068,17 +1068,17 @@ define([
 		// 	});
 		// });
 		$("body").on("click", ".comment-nugget", function(e) {
-			var container = $(this).closest(".workbench-nugget");
-			var highlight_id = container.attr('data-hl-id');
-			showNuggetCommentModal(highlight_id);
+			var container = $(this).closest(".src_claim");
+			var claim_id = container.attr('data-id');
+			showNuggetCommentModal(claim_id);
 		});
 
-		var showNuggetCommentModal = function(highlight_id) {
+		var showNuggetCommentModal = function(claim_id) {
 			$.ajax({
 				url: '/phase1/get_nugget_comment_list/',
 				type: 'post',
 				data: {
-					'highlight_id': highlight_id,
+					'claim_id': claim_id,
 				},
 				success: function(xhr) {		
 					$('#nugget-comment-highlight').html(xhr.nugget_comment_highlight);

@@ -13,12 +13,18 @@ import utils
 
 
 def get_nugget_comment_list(request):
+    """
+    Get thread of comments, given a claim (nugget).
+    :param request:
+    :return:
+    """
+    forum = Forum.objects.get(id=request.session['forum_id'])
     response = {}
     context = {}
-    highlight_id = request.REQUEST.get("highlight_id")
-    this_highlight = Highlight.objects.get(id=highlight_id)
-    thread_comments = NuggetComment.objects.filter(highlight=this_highlight)
-    context['highlight'] = this_highlight.getAttr()
+    claim_id = request.REQUEST.get("claim_id")
+    claim = Claim.objects.get(id=claim_id)
+    thread_comments = ClaimComment.objects.filter(claim=claim)
+    context['claim'] = claim.getAttr(forum)
     context['comments'] = thread_comments
     response['nugget_comment_list'] = render_to_string("phase1/nugget_comment_list.html", context)
     response['nugget_comment_highlight'] = render_to_string("phase1/nugget_comment_highlight.html", context)
@@ -45,8 +51,10 @@ def put_nugget_comment(request):
 
 
 def get_statement_comment_list(request):
+
     response = {}
     context = {}
+
     statement_id = request.REQUEST.get("statement_id")
     this_statement = ClaimVersion.objects.get(id=statement_id)
     thread_comments = StatementComment.objects.filter(claim_version=this_statement)

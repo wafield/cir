@@ -246,6 +246,8 @@ class Highlight(models.Model):
     context = models.ForeignKey(Entry, related_name='highlights', on_delete=models.CASCADE)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     theme = models.ForeignKey(ClaimTheme, null=True, blank=True, on_delete=models.CASCADE)
+
+    # False: question. True: nugget.
     is_nugget = models.BooleanField(default=True)
     text = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField()
@@ -381,18 +383,22 @@ class Claim(Entry):
 
     def getAttrSlot(self, forum):
         """
-        Get claims (actually, nuggets) for a question slot.
+        Get claims (actually, nuggets) for a question slot. "self" is the slot question.
         :param forum:
         :return:
         """
         attr = super(Claim, self).getAttr(forum)
-        attr['slot_title'] = self.title
+        attr['slot_title'] = self.title # Question content
         attr['category'] = self.claim_category
         attr['claims'] = []
         attr['stmt_order'] = self.stmt_order
+
+        # Comments on the question slot.
         attr['num_comments'] = StatementQuestionComment.objects.filter(statement_question=self).count()
         attr['adopted_versions'] = []
         count = 1
+
+        # Adopted version = written statements for this slot.
         for adopted_version in self.adopted_versions().all().order_by("order"):
             adopted_version.order = count
             adopted_version.save()
@@ -416,7 +422,8 @@ class Claim(Entry):
 
                 # List of statements that this claim has been used in.
                 'statement_ids': StatementClaim.objects.filter(claim_id=src_claim.id).values_list("statement_id", flat=True),
-                'num_statements': StatementClaim.objects.filter(claim_id=src_claim.id).count()
+                'num_statements': StatementClaim.objects.filter(claim_id=src_claim.id).count(),
+                'comment_number': ClaimComment.objects.filter(claim_id=src_claim.id).count()
             })
             attr['claims'] = sorted(attr['claims'], key=lambda k: k['num_statements'], reverse=True)
         return attr
