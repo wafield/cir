@@ -1,37 +1,49 @@
 
 {% for slot_info in categories %}
-	<div class="ui red raised segment statement-entry" data-id="{{slot_info.id}}">
-		<h3>{{ slot_info.category|title|slice:"1" }}Q{{ slot_info.stmt_order }}: {{ slot_info.slot_title }}</h3>
-		<span> | </span>
-		<span style="float:right">
-			<!-- <a>8 Views</a> <span> | </span> -->
-			<a href="#" class="expand-info" >Expand</a> <span> | </span>
-			<a href="#" class="show-workspace" slot-id="{{ slot_info.id }}">Open Workspace</a>
-		</span>
-		<div class="collapsed-info" style="display:none;">
-			<div class="ui divider" style="margin: 0.5rem 0;"></div>
-				{% if slot_info.adopted_versions %}
-					<div class="ui stacked segments" style="margin-top:1rem;">
-					{% for stmt in slot_info.adopted_versions %}
-						<div class="src_claim ui segment" data-id="{{ stmt.id }}" style="padding: 0 1rem;">
-							<h4 style="margin: 1rem 0;">[ST{{ forloop.counter }}] {{ stmt.content | safe }}</h4>
-						</div>
-					{% endfor %}
-					</div>
-				{% endif %}
-			<div class="ui stacked segments" style="margin-top:1rem;">
-				{% for src_claim in slot_info.claims %}
-					<div class="src_claim ui secondary segment" data-id="{{ src_claim.id }}" style="padding: 0.5rem 1rem;">
-						[N{{ forloop.counter }}] {{ src_claim.content | safe | truncatechars:100 }}
-						<div class="src_claim_actions" style="position: absolute; right: 0rem; top: 0.2rem; display:none;">
-	<!-- 						<button class="ui circular teal icon button context-claim"><i class="file text icon"></i></button>
-							<button class="ui circular red icon button remove-claim"><i class="remove icon"></i></button> -->
-							<button class="ui teal button context-claim source-nugget" style="padding:0.5rem;"><i class="icon file text"></i>Context</button>
-							<button class="ui red button remove-claim" style="padding:0.5rem;"><i class="icon remove"></i>Remove</button>
-						</div>
-					</div>
-				{% endfor %}
-			</div>
-		</div>
+	<div class="ui vertical segment statement-entry" data-id="{{slot_info.id}}">
+		<h3>Question: {{ slot_info.slot_title }}</h3>
+
+        {% if slot_info.adopted_versions %}
+            <div class="ui stacked segments" style="margin-top:1rem;">
+            {% for stmt in slot_info.adopted_versions %}
+                <div class="src_claim ui segment" data-id="{{ stmt.id }}" style="padding: 0 1rem;">
+                    <h4 style="margin: 1rem 0;">[Statement] {{ stmt.content | safe }}</h4>
+                </div>
+            {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="ui divided list" style="padding: 0 2em;">
+        {% if slot_info.claims %}
+
+            {% for src_claim in slot_info.claims %}
+                <div class="src_claim item" data-id="{{ src_claim.id }}" style="padding: 1em 0; position:relative;">
+                    [Nugget] {{ src_claim.content | safe | truncatechars:300 }}
+                    <div class="description action-bar" style="margin-top: 10px; color:rgba(0,0,0,.4);">
+                        <a class="ui basic image label avatar1" data-id="{{ src_claim.author_id }}"
+                           data-content="{{ src_claim.author_intro }}" data-inverted="">
+                            <img src="{{ STATIC_URL }}/static/pictures/{{ src_claim.author_id }}.png"
+                                 onerror="this.src = '{{ STATIC_URL }}/static/pictures/default-avatar.png';">
+                            {{ src_claim.author_name }}
+                        </a>
+                        {{ src_claim.created_at_pretty }}
+                        <div class="actions" style="margin-top:5px;">
+                            <a href="#" class="item comment-nugget">Comment</a>
+                            {% if src_claim.comment_number != 0 %}
+                                <a href="#" class="item comment-nugget-number">({{ src_claim.comment_number }})</a>
+                            {% endif %}
+                            {% if src_claim.is_author %}
+                                <span> | </span>
+                                <a href="#" class="item delete-nugget">Delete</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+        {% else %}
+            (No nuggets for now.)
+        {% endif %}
+        </div>
 	</div>
 {% endfor %}

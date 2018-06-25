@@ -15,54 +15,54 @@ define([
 	var module = {};
 	
 	// theme object
-	module.theme = {}
+	module.theme = {};
 	module.theme.themes = {};
 	module.theme.init = function() {
 		module.theme.themes = {};
-	}
+	};
 	module.theme.put = function(theme_name, theme_id) {
 		if (!(theme_name in module.theme.themes)) {
 			module.theme.themes[theme_name] = theme_id;
 		}
-	}
+	};
 	module.theme.init();
 
-	module.get_theme_list = function() {
-		var promise = $.ajax({
-			url: '/phase2/get_theme_list/',
-			type: 'post',
-			data: {},
-			success: function(xhr) {
-				module.theme.init();
-				for (var i = 0; i < xhr.themes.length; i++) {
-					var theme = xhr.themes[i];
-					module.theme.put(theme.name, theme.id);
-				}
-				$("#nugget-list-theme").append('<option value="-1">All</option>');
-				for (var theme_name in module.theme.themes) {
-					$("#nugget-list-theme").append('<option value="' + module.theme.themes[theme_name] + '">' + theme_name + '</option>');
-				}
-			},
-			error: function(xhr) {
-				if (xhr.status == 403) {
-					Utils.notify('error', xhr.responseText);
-				}
-			}
-		});	
-		return promise;
-	}
+	// module.get_theme_list = function() {
+	// 	var promise = $.ajax({
+	// 		url: '/phase2/get_theme_list/',
+	// 		type: 'post',
+	// 		data: {},
+	// 		success: function(xhr) {
+	// 			module.theme.init();
+	// 			for (var i = 0; i < xhr.themes.length; i++) {
+	// 				var theme = xhr.themes[i];
+	// 				module.theme.put(theme.name, theme.id);
+	// 			}
+	// 			$("#nugget-list-theme").append('<option value="-1">All</option>');
+	// 			for (var theme_name in module.theme.themes) {
+	// 				$("#nugget-list-theme").append('<option value="' + module.theme.themes[theme_name] + '">' + theme_name + '</option>');
+	// 			}
+	// 		},
+	// 		error: function(xhr) {
+	// 			if (xhr.status == 403) {
+	// 				Utils.notify('error', xhr.responseText);
+	// 			}
+	// 		}
+	// 	});
+	// 	return promise;
+	// };
 
-	module.applyFilter = function() {
-
-		$( "#workbench-nugget-list .workbench-nugget" ).hide();
-		$( "#workbench-nugget-list .workbench-nugget" ).filter(function() {
-			if ($("#nugget-list-theme").val() !== "-1") {
-				return $(this).attr("theme-id") == $("#nugget-list-theme").val();
-			} else {
-				return $(this);
-			}
-		}).show();	
-	}
+	// module.applyFilter = function() {
+    //
+	// 	$( "#workbench-nugget-list .workbench-nugget" ).hide();
+	// 	$( "#workbench-nugget-list .workbench-nugget" ).filter(function() {
+	// 		if ($("#nugget-list-theme").val() !== "-1") {
+	// 			return $(this).attr("theme-id") == $("#nugget-list-theme").val();
+	// 		} else {
+	// 			return $(this);
+	// 		}
+	// 	}).show();
+	// };
 
 	module.get_nugget_list = function() {
 		var promise = $.ajax({
@@ -78,37 +78,37 @@ define([
 				}
 			
 				// show more... / less
-				var showChar = 300;
-			    var ellipsestext = "...";
-			    var moretext = "more";
-			    var lesstext = "less";
-			    $('.more').each(function() {
-			        var content = $(this).html();
-			        if(content.length > showChar) {
-			            var c = content.substr(0, showChar); // aaa b/bb ccc ddd
-			            var h = content.substr(showChar, content.length - showChar); // bbb ccc ddd
-			            var html = c + '<span class="moreellipses">' + ellipsestext+ '&nbsp;</span><span class="morecontent"><span>' + h + '</span>&nbsp;&nbsp;<a href="" class="morelink">' + moretext + '</a></span>';
-			            $(this).html(html);
-			        }
-			    });		
-		        $(".morelink").click(function(){
-			        if($(this).hasClass("less")) {
-			            $(this).removeClass("less");
-			            $(this).html(moretext);
-			        } else {
-			            $(this).addClass("less");
-			            $(this).html(lesstext);
-			        }
-			        $(this).parent().prev().toggle();
-			        $(this).prev().toggle();
-			        return false;
-			    });
+				// var showChar = 300;
+                // var ellipsestext = "...";
+                // var moretext = "more";
+                // var lesstext = "less";
+                // $('.more').each(function() {
+			     //    var content = $(this).html();
+			     //    if(content.length > showChar) {
+			     //        var c = content.substr(0, showChar); // aaa b/bb ccc ddd
+			     //        var h = content.substr(showChar, content.length - showChar); // bbb ccc ddd
+			     //        var html = c + '<span class="moreellipses">' + ellipsestext+ '&nbsp;</span><span class="morecontent"><span>' + h + '</span>&nbsp;&nbsp;<a href="" class="morelink">' + moretext + '</a></span>';
+			     //        $(this).html(html);
+			     //    }
+                // });
+                // $(".morelink").click(function(){
+			     //    if($(this).hasClass("less")) {
+			     //        $(this).removeClass("less");
+			     //        $(this).html(moretext);
+			     //    } else {
+			     //        $(this).addClass("less");
+			     //        $(this).html(lesstext);
+			     //    }
+			     //    $(this).parent().prev().toggle();
+			     //    $(this).prev().toggle();
+			     //    return false;
+                // });
 
-		        $(".avatar1").popup('remove popup').popup('destroy');
-				$(".avatar1").popup();
-			    module.applyFilter();
-				$(".workbench-nugget .action-bar").hide();
-				$(".workbench-nugget .divider").hide();
+                // $(".avatar1").popup('remove popup').popup('destroy');
+				// $(".avatar1").popup();
+                // module.applyFilter();
+				// $(".workbench-nugget .action-bar").hide();
+				// $(".workbench-nugget .divider").hide();
 			},			
 			error: function(xhr) {
 				if (xhr.status == 403) {
@@ -164,20 +164,20 @@ define([
 		    });		
 		});
 
-		$("body").on("click", ".workbench-nugget", function(){
-			$(".workbench-nugget .action-bar").hide();
-			$(".workbench-nugget .divider").hide();
-			$($(this).find(".action-bar")).show();
-			$($(this).find(".divider")).show();
-		});
-
-		$(".theme-label").popup();
-
-		$("#nugget-list-theme").change(function() {
-			module.applyFilter();
-		});
-
-		$('.ui.rating').rating();
+		// $("body").on("click", ".workbench-nugget", function(){
+		// 	$(".workbench-nugget .action-bar").hide();
+		// 	$(".workbench-nugget .divider").hide();
+		// 	$($(this).find(".action-bar")).show();
+		// 	$($(this).find(".divider")).show();
+		// });
+        //
+		// $(".theme-label").popup();
+        //
+		// $("#nugget-list-theme").change(function() {
+		// 	module.applyFilter();
+		// });
+        //
+		// $('.ui.rating').rating();
 		$('.ui.accordion').accordion();
 
 		// nugget button group
@@ -497,7 +497,7 @@ define([
 					}
 				},
 			});
-		}
+		};
 
 		var showNuggetCommentModal = function(highlight_id) {
 			$.ajax({
@@ -518,7 +518,7 @@ define([
 					}
 				}
 			});	
-		}
+		};
 
 		var updateNuggetCommentList = function() {
 			var container = $("#nugget-comment-highlight").find(".workbench-nugget");
@@ -538,7 +538,7 @@ define([
 					}
 				}
 			});	
-		}
+		};
 
 		$("#nugget-comment-modal").on("click", ".nugget-comment-post", function(){
 			var text = $(this).closest("form").find("textarea").val();
@@ -596,7 +596,7 @@ define([
 		});
 
 		$("#claim-detail").on("click", ".make-comment", function(event){
-			event.preventDefault()
+			event.preventDefault();
 			var text = $("#activity-comment-form").find("textarea").val();
 			var claim_id = $("#claim-maker").attr("claim-id");
 			var comment_type = "comment";
@@ -683,11 +683,11 @@ define([
 	};
 
 	module.initLayout = function() {
-		$.when(module.get_theme_list()).done(function(promise1) {
-			$.when(module.get_nugget_list(), module.get_claim_list()).done(function(promise1, promise2) {
-			  	module.initEvents();
-			});		
+		// $.when(module.get_theme_list()).done(function(promise1) {
+		$.when(module.get_nugget_list(), module.get_claim_list()).done(function(promise1, promise2) {
+			module.initEvents();
 		});
+		// });
 		// helper functions
 	};
 

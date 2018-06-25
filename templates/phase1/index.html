@@ -23,13 +23,13 @@
 	<div style="height: 100%;">
 		<div class="ui top attached tabular menu">
             <div class="item">
-                Document Pane
+                Documents Pane
             </div>
 			<div id="document-toc-container" class="ui special popup" style="min-width:400px; max-height:500px; overflow:auto;"></div>
 			<div class="right menu">
                 <a id="document-toc-button" class="item">
                     Table of Contents
-                    <i class="large angle down icon"></i>
+                    <i class="angle down icon"></i>
                 </a>
 			</div>
 		</div>
@@ -37,7 +37,7 @@
              class="ui bottom attached segment"
              style="height: calc(100% - 47px); overflow:hidden; overflow-y:scroll; ">
 			<div id="workbench-document-container" style="border-radius: 0;">
-				<div class="ui massive active text loader">Loading Documents...</div>
+				<div class="ui active text loader"></div>
 			</div>		
 		</div>
 	</div>
@@ -45,25 +45,105 @@
 
 <!-- right panel -->
 
-<div style="font-size:1.2em; position:fixed; top:40px; bottom:0; left:50%; right:0;">
+
+<div id="slot-overview" style="font-size:1.2em; position:fixed; top:40px; bottom:0; left:50%; right:0; margin:0 1em;">
     <div style="height: 100%;">
         <div class="ui top attached tabular menu">
-            <div class="item">Nugget Pane</div>
-            <div class="right menu">
-                <a class="item">
-
-                    <i class="large angle down icon"></i>
+            <div class="item">
+                Nuggets Pane
+            </div>
+            <div class="right top attached tabular menu">
+                <a class="category-tab item active" data-id="finding">
+                    Key Findings
+                </a>
+                <a class="category-tab item" data-id="pro">
+                    Proponent
+                </a>
+                <a class="category-tab item" data-id="con">
+                    Opponent
                 </a>
             </div>
         </div>
-        <div class="ui bottom attached segment"
-             style="height: calc(100% - 47px); overflow:hidden; overflow-y:scroll;">
-            <div id="workbench-nugget-list" class="ui divided list" style="border-radius: 0;"></div>
-            <a href="#" id="nugget-list-back" style="display:none;">back to full list</a>
+        <div id="statement-container"
+             class="ui bottom attached segment"
+             style="height: calc(100% - 47px); overflow:hidden; overflow-y:scroll; ">
+            <div class="ui active text loader"></div>
+        </div>
+    </div>
+</div>
+
+    <div id="slot-detail" style="font-size:1.2em; position:fixed; top:60px; bottom:0; left:50%; right:0; display:none;">
+        <h3 class="ui top attached center aligned header">
+            <a href="#" class="ui icon back-to-statement-list" style="float:left; margin:0; font-size:1.2rem;">
+                <i class="left chevron icon" style="margin-right:0;"></i> List
+            </a>
+            <span id="statement-detail-header">Statement Detail<i id="show-statement-btn"
+                                                                  class="large angle down icon"></i></span>
+        </h3>
+        <div class="container ui attached segment"
+             style="height: calc(100% - 40px); overflow:hidden; overflow-y:scroll; ">
+            <div class="ui massive active text loader">Loading...</div>
         </div>
     </div>
 
-</div>
+{#    <div id="new-slot-modal" class="ui small modal">#}
+{#        <i class="close icon"></i>#}
+{#        <div class="header">#}
+{#            Create a New Guiding Question <a class="ui teal tag label">Pro</a>#}
+{#        </div>#}
+{#        <div class="content">#}
+{#            <div class="ui form">#}
+{#                <div class="field">#}
+{#                    <textarea></textarea>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#        <div class="actions">#}
+{#            <div class="ui button" id="create-empty-slot">Create</div>#}
+{#        </div>#}
+{#    </div>#}
+
+    <div id="statement-question-comment-modal" class="ui small modal">
+        <i class="close icon"></i>
+        <div id="statement-question-comment-container" style="padding:1rem;"></div>
+    </div>
+
+    <div id="statement-history" class="ui small modal">
+        <i class="close icon"></i>
+        <div class="header">
+            Statement Modification History
+        </div>
+        <div class="content">
+
+        </div>
+    </div>
+
+
+    <div id="nugget-bag-close" class="ui segments" style="
+	position: fixed;
+    bottom: calc(60% - 5px);
+    right: 52%;
+    width: 20px;
+    height: 25px;
+	border: 1px solid;
+    background: white;
+    margin:0;
+    display:none;">
+        <i class="ui icon remove"></i>
+    </div>
+    <div id="nugget-bag" class="ui segments" style="
+	position: fixed;
+    top: 40%;
+    bottom: 1%;
+    right: 51%;
+    left: 1%;
+	border: 1px solid;
+    background: white;
+	overflow-y: auto;
+	margin:0;
+	display:none;">
+    </div>
+
 
 {% include 'qa/qa-wrapper.html' %}
 

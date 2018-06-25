@@ -4,15 +4,11 @@
 			<i class="checkmark icon"></i>
 		</a>
 		<div class="content">
-			<div class="description more" data="{{ highlight.text}}">
+			<div class="description more" data="{{ highlight.text}}" style="line-height:1.25em;">
 				{{ highlight.text }}
 			</div>
 		</div>
 		<div class="discription" style="color:rgba(0,0,0,.4);">
-			<span class="ui label theme-label" theme-id={{ highlight.theme_id }}>{{ highlight.theme }}</span>
-			<span> | </span>
-			<span class="ui heart rating" data-rating="0" data-max-rating="1"></span>
-			<span> | </span>
 			<span>{{ highlight.author_name }}</span>
 			<span> | </span>
 			<span>{{ highlight.created_at_pretty }}</span>

@@ -29,24 +29,24 @@ define([
 	module.idle_reset_time = 15 * 1000;
 
 	// theme object
-	module.Theme = {}
+	module.Theme = {};
 	module.Theme.themes = {};
 	module.Theme.colorMap = {};
 	module.Theme.init = function() {
 		module.Theme.themes = {};
-	}
+	};
 	module.Theme.put = function(theme_name, theme_id) {
 		if (!(theme_name in module.Theme.themes)) {
 			module.Theme.themes[theme_name] = theme_id;
 		}
-	}
+	};
 	module.Theme.initColorSchema = function() {
 		var i = 0;
 		for (var theme_name in module.Theme.themes) {
 			module.Theme.colorMap[module.Theme.themes[theme_name]] = colorbrewer["Pastel1"][8][i];
 			i++;
 		}
-	}
+	};
 	module.Theme.init();
 
 	//highlight object
@@ -65,10 +65,6 @@ define([
 		    showDrag = false,
 		    timeout = -1,
 		    counter = 0;
-
-		$('#doc-highlight-toolbar').bind('dragstart', function (event) {
-		    console.log('dragstart...'); 
-		});
 
 		$('.statement-entry').bind('dragenter', function (event) {
 		    event.preventDefault();  
@@ -91,7 +87,7 @@ define([
 			    timeout = setTimeout( function(){
 			        if( !showDrag ){  }
 			    }, 200 );
-			    $(this).addClass('dragging');
+			    $(this).removeClass('dragging');
 			    $(this).css({
 			      backgroundColor : ""
 			    });
@@ -110,7 +106,7 @@ define([
 			var slot_id = $(this).attr("data-id");
 		    _create_nugget(slot_id);
 		});
-	}
+	};
 
 	module.update_statement = function() {
 		return $.ajax({
@@ -130,7 +126,7 @@ define([
 				}
 			}
 		});
-	}
+	};
 
 	module.render_highlights = function(doc_id) {
 		var promise = $.ajax({
@@ -200,30 +196,30 @@ define([
 			}
 		});
 		return promise;
-	}
+	};
 
 
 
-	module.get_author_list = function() {
-		var promise = $.ajax({
-			url: '/phase2/get_author_list/',
-			type: 'post',
-			data: {},
-			success: function(xhr) {
-				for (var i = 0; i < xhr.authors.length; i++) {
-					var author_name = xhr.authors[i].name
-					var author_id = xhr.authors[i].id
-					$("#nugget-list-author").append('<option value="' + author_id + '">' + author_name + '</option>');
-				}
-			},
-			error: function(xhr) {
-				if (xhr.status == 403) {
-					Utils.notify('error', xhr.responseText);
-				}
-			}
-		});	
-		return promise;
-	}
+	// module.get_author_list = function() {
+	// 	var promise = $.ajax({
+	// 		url: '/phase2/get_author_list/',
+	// 		type: 'post',
+	// 		data: {},
+	// 		success: function(xhr) {
+	// 			for (var i = 0; i < xhr.authors.length; i++) {
+	// 				var author_name = xhr.authors[i].name
+	// 				var author_id = xhr.authors[i].id
+	// 				$("#nugget-list-author").append('<option value="' + author_id + '">' + author_name + '</option>');
+	// 			}
+	// 		},
+	// 		error: function(xhr) {
+	// 			if (xhr.status == 403) {
+	// 				Utils.notify('error', xhr.responseText);
+	// 			}
+	// 		}
+	// 	});
+	// 	return promise;
+	// }
 
 	module.get_document_content = function(doc_id) {
 		$("#doc-only").show();
@@ -236,14 +232,7 @@ define([
 			success: function(xhr) {
 				$("#workbench-document-container").html(xhr.workbench_document);
 				module.render_highlights(doc_id);
-				module.applyFilter();
-				$("#workbench-document-panel").append("<div class='ui segment'>" + $("#document-toc-container").html() + "</div>");
-				// $("#workbench-document-container").height($(window).height() - module.body_bottom);
-				// $("#workbench2-document-container").animate({scrollTop: 0}, 0);
-				// module.doc_id = xhr.doc_id;
-				// module.load_highlights_by_doc();
-				// module.get_viewlog();
-				// module.get_nuggetmap();
+				// module.applyFilter();
 			},
 			error: function(xhr) {
 				if (xhr.status == 403) {
@@ -321,7 +310,7 @@ define([
 				$(".avatar1").popup('remove popup').popup('destroy');
 				$(".avatar1").popup();
 
-				module.applyFilter();
+				// module.applyFilter();
 				// $(".workbench-nugget .action-bar").hide();
 				// $(".workbench-nugget .divider").hide();
 			},			
@@ -333,7 +322,7 @@ define([
 		});
 		return promise;
 
-	}
+	};
 
 	var _create_nugget = function (slot_id) {
 		
@@ -359,7 +348,7 @@ define([
 				} else if (view == "list") {
 					module.update_statement();
 				} 
-				$(this).hasClass("dragging")
+				$(this).hasClass("dragging");
 				sessionStorage.setItem("nugget-status", "new");
 			},
 			error: function(xhr) {
@@ -369,7 +358,7 @@ define([
 				}
 			}
 		});
-	}
+	};
 
 	function afterAddHighlight(newHighlightId) {
 		// reset input boxes
@@ -386,7 +375,7 @@ define([
 
 		var doc_id = $(".workbench-doc-item").attr("data-id");
 		module.get_document_content(doc_id);
-		module.get_nugget_list();
+		// module.get_nugget_list();
 	}
 
 	function _stmtUpdater(data) {
@@ -479,9 +468,8 @@ define([
 		        if ($(this).attr("data-type") != "comment") $(this).hide();
 		    });
 		    sessionStorage.setItem("activity-filter", "statement-comment");
-		});;
-
-		$("body").on('click', '.remove-claim', function(e) {
+        });
+        $("body").on('click', '.remove-claim', function(e) {
 			e.stopPropagation();
 			var result = confirm("Want to delete?");
 			if (result) {
@@ -526,7 +514,7 @@ define([
 		$("body").on("click", ".statement-question-comment", function(){
 			var slot_id = $(this).attr("slot-id");
 			showStatementCommentList(slot_id);
-		})
+		});
 		var showStatementCommentList = function(slot_id) {
 			$.ajax({
 				url: '/phase0/get_statement_comment_list/',
@@ -545,7 +533,7 @@ define([
 					}
 				}
 			});	
-		}
+		};
 
 		$('body').on('click', '.feed-edit-claim-2', function(e) {
 			$(this).closest('.statement-entry').find(".edited").hide();
@@ -554,11 +542,11 @@ define([
 		}).on('click', '.feed-edit-claim-cancel-2', function(e) {
 			$(this).closest('.statement-entry').find(".editing").hide();
 			$(this).closest('.statement-entry').find(".edited").show();
-			$container = $(this).closest('.statement-entry');
+            let $container = $(this).closest('.statement-entry');
 			var content = $container.find(".improved.text .content").text();
 			$container.find("textarea").val(content);
 		}).on('click', '.feed-edit-claim-save-2', function(e) {
-			$container = $(this).closest('.statement-entry');
+            let $container = $(this).closest('.statement-entry');
 			var content = $container.find("textarea").val();
 			var claim_version_id = $container.attr("data-id");
 			$container.find(".improved.text .content").text(content);
@@ -584,38 +572,38 @@ define([
 		});
 
 
-		$('body').on('mouseenter', '.adopted-statement', function() {
-			$(this).find(".reorder-btns").show();
-		}).on('mouseleave', '.adopted-statement', function() {
-			$(this).find(".reorder-btns").hide();
-		}).on('click', '.statement-reorder-up', function() {
-			var claim_id = $(this).closest(".adopted-statement").attr("data-id");
-			reorderStatement(claim_id, true);
-		}).on('click', '.statement-reorder-down', function() {
-			var claim_id = $(this).closest(".adopted-statement").attr("data-id");
-			reorderStatement(claim_id, false);
-		});
+		// $('body').on('mouseenter', '.adopted-statement', function() {
+		// 	$(this).find(".reorder-btns").show();
+		// }).on('mouseleave', '.adopted-statement', function() {
+		// 	$(this).find(".reorder-btns").hide();
+		// }).on('click', '.statement-reorder-up', function() {
+		// 	var claim_id = $(this).closest(".adopted-statement").attr("data-id");
+		// 	reorderStatement(claim_id, true);
+		// }).on('click', '.statement-reorder-down', function() {
+		// 	var claim_id = $(this).closest(".adopted-statement").attr("data-id");
+		// 	reorderStatement(claim_id, false);
+		// });
+        //
+		// var reorderStatement = function(claimId, isUpvote){
+		// 	$.ajax({
+		// 		url: '/api_draft_stmt/',
+		// 		data: {
+		// 			action: 'reorder',
+		// 			claim_id: claimId,
+		// 			is_upvote: isUpvote.toString(),
+		// 		},
+		// 		success: function() {
+		// 			var slot_id = $(".slot").attr("data-id");
+		// 			$(".show-workspace[slot-id=" + slot_id + "]").click();
+		// 		},
+		// 	})
+		// };
 
-		var reorderStatement = function(claimId, isUpvote){
-			$.ajax({
-				url: '/api_draft_stmt/',
-				data: {
-					action: 'reorder',
-					claim_id: claimId,
-					is_upvote: isUpvote.toString(),
-				},
-				success: function() {
-					var slot_id = $(".slot").attr("data-id");
-					$(".show-workspace[slot-id=" + slot_id + "]").click();
-				},
-			})				
-		}
-
-		$('body').on('mouseenter', '.src_claim', function() {
-			$(this).find(".src_claim_actions").show();
-		}).on('mouseleave', '.src_claim', function() {
-			$(this).find(".src_claim_actions").hide();
-		});
+		// $('body').on('mouseenter', '.src_claim', function() {
+		// 	$(this).find(".src_claim_actions").show();
+		// }).on('mouseleave', '.src_claim', function() {
+		// 	$(this).find(".src_claim_actions").hide();
+		// });
 
 		// static event listeners
 		$('body').on('click', '.claim-reword-btn', function() {
@@ -676,15 +664,7 @@ define([
 			$('#claim-pane .reword.form').transition('slide down', '500ms');
 		});
 
-		$("body").on("click", ".expand-info", function(){
-			if ($(this).closest(".statement-entry").find(".collapsed-info").css("display") == "none") {
-				$(this).closest(".statement-entry").find(".collapsed-info").show();
-				$(this).text("Collapse");
-			} else {
-				$(this).closest(".statement-entry").find(".collapsed-info").hide();
-				$(this).text("Expand")
-			}
-		}).on("click", ".back-to-statement-list", function(){
+		$("body").on("click", ".back-to-statement-list", function(){
 			$('#slot-overview').show();
 			module.update_statement();
 			$('#slot-detail').attr("slot-id","");
@@ -802,7 +782,7 @@ define([
 					}
 				}
 			});	
-		}
+		};
 
 		$('body').on('click', '.statement-question-comment-btn', function(){
 			var slot_id = $(this).attr("slot-id");
@@ -936,7 +916,7 @@ define([
 		$("#theme-info").popup({
 			position: 	'bottom center',
 		    popup: 		'#theme-info-popup'
-		})
+		});
 
 		$(".avatar1").popup('remove popup').popup('destroy');
 		$(".avatar1").popup();
@@ -957,9 +937,9 @@ define([
 			module.applyFilter();
 		});
 
-		$("#nugget-list-author").change(function() {
-			module.applyFilter();
-		});
+		// $("#nugget-list-author").change(function() {
+		// 	module.applyFilter();
+		// });
 
 		$("body").on("click", "#highlight-delete", function(e) {
 			var result = confirm("Want to delete?");
@@ -1007,7 +987,7 @@ define([
 			});
 		});
 		$("body").on("click", ".source-nugget", function(e) {
-			var hl_id = $(this).closest(".workbench-nugget").attr("data-hl-id");
+			var hl_id = $(this).closest(".src_claim").attr("data-id");
 			$.ajax({
 				url: '/workbench/api_get_doc_by_hl_id/',
 				type: 'post',
@@ -1051,42 +1031,42 @@ define([
 				}
 			});						
 		});
-		$("body").on("click", ".reassign-nugget", function(e) {
-			var container = $(this).closest(".workbench-nugget");
-			var html = "<div class='reassign-options'><div style='overflow:hidden;'><button class='workbench-nugget-reassign-close' style='float:right;'><i class='remove icon'></i>close</button></div>";
-			for (var theme_name in module.Theme.themes) {
-				var theme_name = theme_name;
-				var theme_id = module.Theme.themes[theme_name];
-				html = html + '<button class="reassign-btn" data-id=' + theme_id + '>' + theme_name + '</button>';
-			}			
-			html = html + "</div>";	
-			container.append(html);
-			container.on("click", ".reassign-btn", function(e) {
-				var $nugget = $(this).closest(".workbench-nugget")
-				var highlight_id = $nugget.attr('data-hl-id');
-				var theme_id = $(this).attr("data-id");
-				$.ajax({
-					url: '/phase1/change_nugget_theme/',
-					type: 'post',
-					data: {
-						'highlight_id': highlight_id,
-						'theme_id': theme_id
-					},
-					success: function(xhr) {		
-						module.get_nugget_list();
-					},
-					error: function(xhr) {
-						if (xhr.status == 403) {
-							Utils.notify('error', xhr.responseText);
-						}
-					}
-				});
-			});
-			container.on("click", ".workbench-nugget-reassign-close", function(e) {
-				var html = $(this).closest(".workbench-nugget").find(".reassign-options");
-				html.remove();
-			});
-		});
+		// $("body").on("click", ".reassign-nugget", function(e) {
+		// 	var container = $(this).closest(".workbench-nugget");
+		// 	var html = "<div class='reassign-options'><div style='overflow:hidden;'><button class='workbench-nugget-reassign-close' style='float:right;'><i class='remove icon'></i>close</button></div>";
+		// 	for (var theme_name in module.Theme.themes) {
+		// 		var theme_name = theme_name;
+		// 		var theme_id = module.Theme.themes[theme_name];
+		// 		html = html + '<button class="reassign-btn" data-id=' + theme_id + '>' + theme_name + '</button>';
+		// 	}
+		// 	html = html + "</div>";
+		// 	container.append(html);
+		// 	container.on("click", ".reassign-btn", function(e) {
+		// 		var $nugget = $(this).closest(".workbench-nugget");
+		// 		var highlight_id = $nugget.attr('data-hl-id');
+		// 		var theme_id = $(this).attr("data-id");
+		// 		$.ajax({
+		// 			url: '/phase1/change_nugget_theme/',
+		// 			type: 'post',
+		// 			data: {
+		// 				'highlight_id': highlight_id,
+		// 				'theme_id': theme_id
+		// 			},
+		// 			success: function(xhr) {
+		// 				module.get_nugget_list();
+		// 			},
+		// 			error: function(xhr) {
+		// 				if (xhr.status == 403) {
+		// 					Utils.notify('error', xhr.responseText);
+		// 				}
+		// 			}
+		// 		});
+		// 	});
+		// 	container.on("click", ".workbench-nugget-reassign-close", function(e) {
+		// 		var html = $(this).closest(".workbench-nugget").find(".reassign-options");
+		// 		html.remove();
+		// 	});
+		// });
 		$("body").on("click", ".comment-nugget", function(e) {
 			var container = $(this).closest(".workbench-nugget");
 			var highlight_id = container.attr('data-hl-id');
@@ -1111,7 +1091,7 @@ define([
 					}
 				}
 			});	
-		}
+		};
 
 		var updateNuggetCommentList = function() {
 			var container = $("#nugget-comment-highlight").find(".workbench-nugget");
@@ -1131,7 +1111,7 @@ define([
 					}
 				}
 			});	
-		}
+		};
 
 		var showStatementCommentList = function(statement_id) {
 			$.ajax({
@@ -1149,7 +1129,7 @@ define([
 					}
 				}
 			});	
-		}
+		};
 
 		$("body").on("click", ".statement-comment-post", function(){
 			var textarea = $(this).closest(".input").find("input");
@@ -1179,7 +1159,7 @@ define([
 			var text = $(this).closest("form").find("textarea").val();
 		 	var parent_id = $(this).closest(".comment").attr("comment-id");
 
-			var $container = $(this).closest(".event")
+			var $container = $(this).closest(".event");
 			if ($(this).closest(".event").length === 0) $container = $(this).closest(".statement-entry");
 		 	var statement_id = $container.attr("data-id");
 		 	var textarea = $(this).closest("form").find("textarea");
@@ -1209,7 +1189,7 @@ define([
 		}).on("click", ".statement-comment-reply", function(){
 		 	$(this).closest(".content").find(".form").show();
 		}).on("click", ".statement-comment-btn", function(){
-			var $container = $(this).closest(".event")
+			var $container = $(this).closest(".event");
 			if ($(this).closest(".event").length === 0) $container = $(this).closest(".statement-entry");
 			if ($container.find(".statement-comments").css("display") == "none") {
 				var statement_id = $(this).attr("data-id");
@@ -1219,7 +1199,7 @@ define([
 				$container.find(".statement-comments").hide();
 			}
 		}).on("click", ".statement-retract", function(){
-			var $container = $(this).closest(".statement-entry")
+			var $container = $(this).closest(".statement-entry");
 			var id = $(this).attr('data-id');
 			$(".event[data-id=" + id + "] .feed-adopt-claim-version[data-action=deadopt]").click();
 			$.ajax({
@@ -1361,8 +1341,8 @@ define([
 					var text = "";
 					for (var i = 0; i < highlights.length; i ++) {
 						text += highlights[i].textContent;
-					};
-					module.Highlight.newHighlight.text = text;
+                    }
+                    module.Highlight.newHighlight.text = text;
 					$('#doc-highlight-toolbar').show();
 					$('#doc-highlight-toolbar').css('position', 'fixed');
 					$('#doc-highlight-toolbar').css('left', e.pageX).css('top', e.pageY);
@@ -1374,10 +1354,10 @@ define([
 					// document inner container upper bound relative to document
 					var tmp2 = $("#workbench-document-panel").offset().top;
 					// distance scroll to the top
-					var tmp3 = $("#workbench-document-panel").scrollTop()
+					var tmp3 = $("#workbench-document-panel").scrollTop();
 					// start and end of nugget relative to document
-					var st = $(this).find('.tk.highlighted')[0]
-					var ed = $(this).find('.tk.highlighted')[$(this).find('.tk.highlighted').length - 1]
+					var st = $(this).find('.tk.highlighted')[0];
+					var ed = $(this).find('.tk.highlighted')[$(this).find('.tk.highlighted').length - 1];
 					var top = $(st).offset().top;
 					var bottom = $(ed).offset().top;
 					top = top - tmp2 + tmp3;
@@ -1403,24 +1383,24 @@ define([
 		    }
 		});
 		$("#doc-only").checkbox("uncheck");
-
-		$("body").on("click", "#create-empty-slot", function() {
-			var category = sessionStorage.getItem('category');
-			var content = $("#new-slot-modal textarea").val();
-			$.ajax({
-				url: '/api_draft_stmt/',
-				data: {
-					action: 'initiate-empty-slot',
-					category: category,
-					content: content,
-				},
-				success: function() {
-					$("#new-slot-modal textarea").val("");
-					module.update_statement();
-					$("#new-slot-modal").modal('hide');
-				},
-			})		
-		});
+        //
+		// $("body").on("click", "#create-empty-slot", function() {
+		// 	var category = sessionStorage.getItem('category');
+		// 	var content = $("#new-slot-modal textarea").val();
+		// 	$.ajax({
+		// 		url: '/api_draft_stmt/',
+		// 		data: {
+		// 			action: 'initiate-empty-slot',
+		// 			category: category,
+		// 			content: content,
+		// 		},
+		// 		success: function() {
+		// 			$("#new-slot-modal textarea").val("");
+		// 			module.update_statement();
+		// 			$("#new-slot-modal").modal('hide');
+		// 		},
+		// 	})
+		// });
 
 		$("body").on("click", "#ask-question-about-nugget", function() {
 			$.ajax({
@@ -1453,77 +1433,77 @@ define([
 		});
 	};
 
-	module.applyFilter = function() {
-		return; // noop.
-
-		$( ".workbench-nugget" ).hide();
-		$( ".workbench-nugget" ).filter(function() {
-			if ($("#nugget-list-theme").val() !== "-1") {
-				return $(this).attr("theme-id") == $("#nugget-list-theme").val();
-			} else {
-				return $(this);
-			}
-		}).filter(function() {
-			if ($("#nugget-list-author").val() !== "-1") {
-				return $(this).attr("author-id") == $("#nugget-list-author").val();
-			} else {
-				return $(this);
-			}
-		}).filter(function() {
-			if ($('#doc-only').hasClass("checked")) {
-				return $(this).attr("doc-id") == $(".workbench-doc-item").attr("data-id");
-			} else {
-				return $(this);
-			}
-		}).show();	
-	}
+	// module.applyFilter = function() {
+	// 	return; // noop.
+    //
+	// 	$( ".workbench-nugget" ).hide();
+	// 	$( ".workbench-nugget" ).filter(function() {
+	// 		if ($("#nugget-list-theme").val() !== "-1") {
+	// 			return $(this).attr("theme-id") == $("#nugget-list-theme").val();
+	// 		} else {
+	// 			return $(this);
+	// 		}
+	// 	}).filter(function() {
+	// 		if ($("#nugget-list-author").val() !== "-1") {
+	// 			return $(this).attr("author-id") == $("#nugget-list-author").val();
+	// 		} else {
+	// 			return $(this);
+	// 		}
+	// 	}).filter(function() {
+	// 		if ($('#doc-only').hasClass("checked")) {
+	// 			return $(this).attr("doc-id") == $(".workbench-doc-item").attr("data-id");
+	// 		} else {
+	// 			return $(this);
+	// 		}
+	// 	}).show();
+	// }
 
 	module.initLayout = function() {
-		$.when(module.get_nugget_list()).done(function(promise1) {
+		// $.when(module.get_nugget_list()).done(function(promise1) {
 			module.get_document_toc();
 			module.initEvents();
-		});
+		// });
 
-		module.get_author_list();
+		// module.get_author_list();
 
 		// put heatmap
-		idleTime = 0
-		idleInterval = setInterval(function() {
-			idleTime = idleTime + 1;
-			if (idleTime < Math.floor(module.idle_reset_time / module.put_viewlog_interval) && $(".workbench-doc-item").is(":visible")) {
-			  if ($("#header-user-name").attr("data-role") !== "panelist") return;
-			  var upper = $("#workbench-document-panel").scrollTop();
-			  var lower = $("#workbench-document-panel").scrollTop() + $("#workbench-document-panel").height();
-			  var height = $("#workbench-document-container").height();
-			  var doc_id = $(".workbench-doc-item").attr("data-id");
-			  var author_id = $("#header-user-name").attr("data-id");
-			  $.ajax({
-					url: '/sankey/put_viewlog/',
-					type: 'post',
-					data: {
-					  "doc_id": 	doc_id,
-					  "lower": 		lower,
-					  "upper": 		upper,
-					  "height": 	height,
-					  "author_id": 	author_id
-					},
-					success: function(xhr) {
-					},
-					error: function(xhr) {
-					  if (xhr.status == 403) {
-					    Utils.notify('error', xhr.responseText);
-					  }
-					}
-				});
-			}
-		}, module.put_viewlog_interval); // every 5s
-		$("body").on("mousemove", "#workbench-document-container", function(e){
-			idleTime = 0;
-		})
+		// idleTime = 0
+		// idleInterval = setInterval(function() {
+		// 	idleTime = idleTime + 1;
+		// 	if (idleTime < Math.floor(module.idle_reset_time / module.put_viewlog_interval) && $(".workbench-doc-item").is(":visible")) {
+		// 	  if ($("#header-user-name").attr("data-role") !== "panelist") return;
+		// 	  var upper = $("#workbench-document-panel").scrollTop();
+		// 	  var lower = $("#workbench-document-panel").scrollTop() + $("#workbench-document-panel").height();
+		// 	  var height = $("#workbench-document-container").height();
+		// 	  var doc_id = $(".workbench-doc-item").attr("data-id");
+		// 	  var author_id = $("#header-user-name").attr("data-id");
+		// 	  $.ajax({
+		// 			url: '/sankey/put_viewlog/',
+		// 			type: 'post',
+		// 			data: {
+		// 			  "doc_id": 	doc_id,
+		// 			  "lower": 		lower,
+		// 			  "upper": 		upper,
+		// 			  "height": 	height,
+		// 			  "author_id": 	author_id
+		// 			},
+		// 			success: function(xhr) {
+		// 			},
+		// 			error: function(xhr) {
+		// 			  if (xhr.status == 403) {
+		// 			    Utils.notify('error', xhr.responseText);
+		// 			  }
+		// 			}
+		// 		});
+		// 	}
+		// }, module.put_viewlog_interval); // every 5s
+		// $("body").on("mousemove", "#workbench-document-container", function(e){
+		// 	idleTime = 0;
+		// })
 
 		module.update_statement();
 
-	}
+	};
 
 	var textarea_autoresize = function(){
 		$('textarea').each(function () {
@@ -1532,7 +1512,7 @@ define([
 			this.style.height = 'auto';
 			this.style.height = (this.scrollHeight) + 'px';
 		});
-	}
+	};
 
 	module.initLayout();
 });
