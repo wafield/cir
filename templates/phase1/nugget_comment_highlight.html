@@ -1,17 +1,15 @@
-<div class="ui segment workbench-nugget nugget-related" data-hl-id = {{ highlight.id }}>
-	{% if highlight.is_nugget %}
-		<a class="ui small red right corner label nugget-select-mark" style="display:none;">
-			<i class="checkmark icon"></i>
-		</a>
-		<div class="content">
-			<div class="description more" data="{{ highlight.text}}" style="line-height:1.25em;">
-				{{ highlight.text }}
-			</div>
-		</div>
-		<div class="discription" style="color:rgba(0,0,0,.4);">
-			<span>{{ highlight.author_name }}</span>
-			<span> | </span>
-			<span>{{ highlight.created_at_pretty }}</span>
-		</div>
-	{% endif %}
+<div class="workbench-nugget nugget-related" data-claim-id="{{ claim.id }}">
+    <a class="ui small red right corner label nugget-select-mark" style="display:none;">
+        <i class="checkmark icon"></i>
+    </a>
+    <div class="content">
+        <div class="description more" style="line-height:1.25em;">
+            [Nugget] {{ claim.content }}
+        </div>
+    </div>
+    <div style="color:rgba(0,0,0,.4);">
+        <span>{{ claim.author_name }}</span>
+        <span> | </span>
+        <span>{{ claim.created_at_full }}</span>
+    </div>
 </div>

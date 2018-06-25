@@ -48,25 +48,32 @@
 	{% else %}
 
 <!-- left panel -->
-<div style="font-size:1.2em; position:fixed; top:50px; bottom:0; left:0; right:50%;">
-	<div style="padding-left: 2em; position:absolute; width:100%; max-width:640px; right:0;">
-		<div class="ui text menu">
-			<div class="header item">nugget list</div>
-			<div class="header item" style="border-left: 1px solid #000000;margin-left: 1em;">theme</div>
-			<select name="gender" class="ui dropdown item" id="nugget-list-theme">
-			</select>
-		</div>
-	</div>
-	<div style="overflow:auto; top:60px; bottom:0; position:absolute; padding:1em; padding-top:0; width:100%; max-width:640px; right:0;">
-		<div id="workbench-nugget-list" class="ui segments" style="border-radius: 0;">
-			<div class="ui segment">
-				<div class="ui active small inline loader"></div>loading
-			</div>
-		</div>
-		<a href="#" id="nugget-list-back" style="display:none;">back to full list</a>
-	</div>
-</div>
-
+        <div id="slot-overview"
+             style="font-size:1.2em; position:fixed; top:40px; bottom:0; left:0; right:50%; margin:0 1em;">
+            <div style="height: 100%;">
+                <div class="ui top attached tabular menu">
+                    <div class="item">
+                        Nuggets Pane
+                    </div>
+                    <div class="right top attached tabular menu">
+                        <a class="category-tab item active" data-id="finding">
+                            Key Findings
+                        </a>
+                        <a class="category-tab item" data-id="pro">
+                            Proponent
+                        </a>
+                        <a class="category-tab item" data-id="con">
+                            Opponent
+                        </a>
+                    </div>
+                </div>
+                <div id="statement-container"
+                     class="ui bottom attached segment"
+                     style="height: calc(100% - 47px); overflow:hidden; overflow-y:scroll; ">
+                    <div class="ui active text loader"></div>
+                </div>
+            </div>
+        </div>
 <!-- right panel -->
 <div style="font-size:1.2em; position:fixed; top:50px; bottom:0; left:50%; right:0;">
 	<div style="padding-left: 2em;">

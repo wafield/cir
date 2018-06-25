@@ -2,6 +2,10 @@
 {% for slot_info in categories %}
 	<div class="ui vertical segment statement-entry" data-id="{{slot_info.id}}">
 		<h3>Question: {{ slot_info.slot_title }}</h3>
+        <button class="show-workspace" data-id="{{ slot_info.id }}" style="display:none;">
+            open workspace
+        </button>
+
 
         {% if slot_info.adopted_versions %}
             <div class="ui stacked segments" style="margin-top:1rem;">

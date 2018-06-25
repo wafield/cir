@@ -26,40 +26,56 @@ def get_nugget_comment_list(request):
     thread_comments = ClaimComment.objects.filter(claim=claim)
     context['claim'] = claim.getAttr(forum)
     context['comments'] = thread_comments
-    response['nugget_comment_list'] = render_to_string("phase1/nugget_comment_list.html", context)
-    response['nugget_comment_highlight'] = render_to_string("phase1/nugget_comment_highlight.html", context)
+    response['nugget_comment_list'] = render_to_string(
+        "phase1/nugget_comment_list.html", context)
+    response['nugget_comment_highlight'] = render_to_string(
+        "phase1/nugget_comment_highlight.html", context)
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
 def put_nugget_comment(request):
+    """
+    Save a ClaimComment entry, after user posts a comment on a nugget.
+    :param request:
+    :return:
+    """
+    forum = Forum.objects.get(id=request.session['forum_id'])
     response = {}
     context = {}
     author = request.user
+    # Parent comment.
     parent_id = request.REQUEST.get('parent_id')
-    highlight_id = request.REQUEST.get('highlight_id')
+    # Context claim/nugget.
+    claim_id = request.REQUEST.get('claim_id')
     text = request.REQUEST.get('text')
     created_at = timezone.now()
-    highlight = Highlight.objects.get(id=highlight_id)
+    context_claim = Claim.objects.get(id=claim_id)
     if parent_id == "":  # root node
-        newNuggetComment = NuggetComment(author=author, text=text, highlight=highlight, created_at=created_at)
+        newClaimComment = ClaimComment(author=author, text=text,
+                                       created_at=created_at,
+                                       comment_type='comment', forum=forum,
+                                       claim=context_claim)
     else:
-        parent = NuggetComment.objects.get(id=parent_id)
-        newNuggetComment = NuggetComment(author=author, text=text, highlight=highlight, parent=parent,
-                                         created_at=created_at)
-    newNuggetComment.save()
+        parent = ClaimComment.objects.get(id=parent_id)
+        newClaimComment = ClaimComment(author=author, text=text,
+                                       created_at=created_at,
+                                       comment_type='comment', forum=forum,
+                                       claim=context_claim, parent=parent)
+    newClaimComment.save()
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
 def get_statement_comment_list(request):
-
     response = {}
     context = {}
 
     statement_id = request.REQUEST.get("statement_id")
     this_statement = ClaimVersion.objects.get(id=statement_id)
-    thread_comments = StatementComment.objects.filter(claim_version=this_statement)
+    thread_comments = StatementComment.objects.filter(
+        claim_version=this_statement)
     context['comments'] = thread_comments
-    response['statement_comment_list'] = render_to_string("phase1/statement-comment-list.html", context)
+    response['statement_comment_list'] = render_to_string(
+        "phase1/statement-comment-list.html", context)
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
@@ -73,10 +89,14 @@ def put_statement_comment(request):
     created_at = timezone.now()
     statement = ClaimVersion.objects.get(id=statement_id)
     if parent_id == "":  # root node
-        newStatementComment = StatementComment(author=author, text=text, claim_version=statement, created_at=created_at)
+        newStatementComment = StatementComment(author=author, text=text,
+                                               claim_version=statement,
+                                               created_at=created_at)
     else:
         parent = StatementComment.objects.get(id=parent_id)
-        newStatementComment = StatementComment(author=author, text=text, claim_version=statement, parent=parent,
+        newStatementComment = StatementComment(author=author, text=text,
+                                               claim_version=statement,
+                                               parent=parent,
                                                created_at=created_at)
     newStatementComment.save()
     return HttpResponse(json.dumps(response), mimetype='application/json')
@@ -94,14 +114,17 @@ def api_load_all_documents(request):
         doc_attr['folder'] = doc.folder
         doc_attr['title'] = doc.title
         doc_attr['sections'] = []
-        ordered_sections = doc.sections.filter(order__isnull=False).order_by('order')
+        ordered_sections = doc.sections.filter(order__isnull=False).order_by(
+            'order')
         for section in ordered_sections:
             doc_attr['sections'].append(section.getAttr(forum))
-        unordered_sections = doc.sections.filter(order__isnull=True).order_by('updated_at')
+        unordered_sections = doc.sections.filter(order__isnull=True).order_by(
+            'updated_at')
         for section in unordered_sections:
             doc_attr['sections'].append(section.getAttr(forum))
         context["docs"].append(doc_attr);
-        response['workbench_document'] = render_to_string("workbench-documents.html", context)
+        response['workbench_document'] = render_to_string(
+            "workbench-documents.html", context)
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
@@ -110,7 +133,8 @@ def api_get_toc(request):
     context = {}
     # retrieve docs not in any folder
     context['root_docs'] = []
-    root_docs = Doc.objects.filter(forum_id=request.session['forum_id'], folder__isnull=True).order_by("order")
+    root_docs = Doc.objects.filter(forum_id=request.session['forum_id'],
+                                   folder__isnull=True).order_by("order")
     for doc in root_docs:
         m_doc = {}
         m_doc['name'] = doc.title
@@ -124,7 +148,8 @@ def api_get_toc(request):
         m_doc['content'].sort(key=lambda x: x["id"])
         context['root_docs'].append(m_doc)
     # retrieve docs in a folder
-    folders = EntryCategory.objects.filter(forum_id=request.session['forum_id'], category_type='doc')
+    folders = EntryCategory.objects.filter(forum_id=request.session['forum_id'],
+                                           category_type='doc')
     context['folders'] = []
     for folder in folders:
         m_folder = {}
@@ -160,13 +185,16 @@ def api_get_doc_by_hl_id(request):
     context['doc_name'] = doc.title
     context['sections'] = []
     context['doc_id'] = doc.id
-    ordered_sections = doc.sections.filter(order__isnull=False).order_by('order')
+    ordered_sections = doc.sections.filter(order__isnull=False).order_by(
+        'order')
     for section in ordered_sections:
         context['sections'].append(section.getAttr(forum))
-    unordered_sections = doc.sections.filter(order__isnull=True).order_by('updated_at')
+    unordered_sections = doc.sections.filter(order__isnull=True).order_by(
+        'updated_at')
     for section in unordered_sections:
         context['sections'].append(section.getAttr(forum))
-    response['workbench_document'] = render_to_string("workbench-document.html", context)
+    response['workbench_document'] = render_to_string("workbench-document.html",
+                                                      context)
     response['doc_id'] = doc.id
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
@@ -182,13 +210,16 @@ def api_get_doc_by_sec_id(request):
     context['doc_name'] = doc.title
     context['sections'] = []
     context['doc_id'] = doc.id
-    ordered_sections = doc.sections.filter(order__isnull=False).order_by('order')
+    ordered_sections = doc.sections.filter(order__isnull=False).order_by(
+        'order')
     for section in ordered_sections:
         context['sections'].append(section.getAttr(forum))
-    unordered_sections = doc.sections.filter(order__isnull=True).order_by('updated_at')
+    unordered_sections = doc.sections.filter(order__isnull=True).order_by(
+        'updated_at')
     for section in unordered_sections:
         context['sections'].append(section.getAttr(forum))
-    response['workbench_document'] = render_to_string("workbench-document.html", context)
+    response['workbench_document'] = render_to_string("workbench-document.html",
+                                                      context)
     response['doc_id'] = doc.id
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
@@ -203,13 +234,16 @@ def api_get_doc_by_doc_id(request):
     context['doc_name'] = doc.title
     context['doc_id'] = doc.id
     context['sections'] = []
-    ordered_sections = doc.sections.filter(order__isnull=False).order_by('order')
+    ordered_sections = doc.sections.filter(order__isnull=False).order_by(
+        'order')
     for section in ordered_sections:
         context['sections'].append(section.getAttr(forum))
-    unordered_sections = doc.sections.filter(order__isnull=True).order_by('updated_at')
+    unordered_sections = doc.sections.filter(order__isnull=True).order_by(
+        'updated_at')
     for section in unordered_sections:
         context['sections'].append(section.getAttr(forum))
-    response['workbench_document'] = render_to_string("workbench-document.html", context)
+    response['workbench_document'] = render_to_string("workbench-document.html",
+                                                      context)
     response['doc_id'] = doc.id
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
@@ -219,18 +253,22 @@ def api_get_init_doc(request):
     context = {}
     forum = Forum.objects.get(id=request.session['forum_id'])
     # retrieve docs in a folder
-    doc = Doc.objects.filter(forum_id=request.session['forum_id'], order__isnull=False).order_by('order')[0]
+    doc = Doc.objects.filter(forum_id=request.session['forum_id'],
+                             order__isnull=False).order_by('order')[0]
     doc_id = doc.id
     context['doc_name'] = doc.title
     context['doc_id'] = doc_id
     context['sections'] = []
-    ordered_sections = doc.sections.filter(order__isnull=False).order_by('order')
+    ordered_sections = doc.sections.filter(order__isnull=False).order_by(
+        'order')
     for section in ordered_sections:
         context['sections'].append(section.getAttr(forum))
-    unordered_sections = doc.sections.filter(order__isnull=True).order_by('updated_at')
+    unordered_sections = doc.sections.filter(order__isnull=True).order_by(
+        'updated_at')
     for section in unordered_sections:
         context['sections'].append(section.getAttr(forum))
-    response['workbench_document'] = render_to_string("workbench-document.html", context)
+    response['workbench_document'] = render_to_string("workbench-document.html",
+                                                      context)
     response['doc_id'] = doc_id
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
@@ -262,14 +300,21 @@ def get_highlights(request):
         highlights = section.highlights.all()
         for highlight in highlights:
             highlight_info = highlight.getAttr()
-            highlight_info["doc_id"] = DocSection.objects.get(id=highlight.context.id).doc.id
+            highlight_info["doc_id"] = DocSection.objects.get(
+                id=highlight.context.id).doc.id
             highlight_info["is_nugget"] = highlight.is_nugget
             highlight_info["used_in_slots"] = []
-            if (HighlightClaim.objects.filter(highlight_id=Highlight.objects.get(id=highlight.id)).count() > 0):
-                claim = HighlightClaim.objects.filter(highlight_id=Highlight.objects.get(id=highlight.id))[0].claim
-                for ref in ClaimReference.objects.filter(refer_type='stmt', from_claim=claim):
+            if (HighlightClaim.objects.filter(
+                    highlight_id=Highlight.objects.get(
+                            id=highlight.id)).count() > 0):
+                claim = HighlightClaim.objects.filter(
+                    highlight_id=Highlight.objects.get(id=highlight.id))[
+                    0].claim
+                for ref in ClaimReference.objects.filter(refer_type='stmt',
+                                                         from_claim=claim):
                     slot = ref.to_claim
-                    info = str(slot.claim_category.upper()[:1]) + "Q" + str(slot.stmt_order)
+                    info = str(slot.claim_category.upper()[:1]) + "Q" + str(
+                        slot.stmt_order)
                     highlight_info["used_in_slots"].append(info)
             response['highlights'].append(highlight_info)
     return HttpResponse(json.dumps(response), mimetype='application/json')
@@ -279,15 +324,18 @@ def get_statement_version(request):
     response = {}
     context = {}
     claim_version_id = request.REQUEST.get('claim_version_id')
-    statementVersions = StatementVersion.objects.filter(claim_version_id=claim_version_id).order_by('-updated_at')
+    statementVersions = StatementVersion.objects.filter(
+        claim_version_id=claim_version_id).order_by('-updated_at')
     context['versions'] = []
     for statementVersion in statementVersions:
         item = {}
         item['text'] = statementVersion.text
         item['updated_at'] = utils.pretty_date(statementVersion.updated_at)
-        item['author'] = statementVersion.author.first_name + " " + statementVersion.author.last_name
+        item[
+            'author'] = statementVersion.author.first_name + " " + statementVersion.author.last_name
         context['versions'].append(item)
-    response['html'] = render_to_string("phase1/statement-versions.html", context)
+    response['html'] = render_to_string("phase1/statement-versions.html",
+                                        context)
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
@@ -316,15 +364,19 @@ def put_claim(request):
     data_hl_ids = request.REQUEST.get('data_hl_ids')
     category = "pending"
     now = timezone.now()
-    newClaim = Claim(forum_id=request.session['forum_id'], author=request.user, created_at=now, updated_at=now,
-                     content=content, theme_id=theme_id, claim_category=category)
+    newClaim = Claim(forum_id=request.session['forum_id'], author=request.user,
+                     created_at=now, updated_at=now,
+                     content=content, theme_id=theme_id,
+                     claim_category=category)
     newClaim.save()
-    claim_version = ClaimVersion(forum_id=request.session['forum_id'], author=request.user, content=content,
+    claim_version = ClaimVersion(forum_id=request.session['forum_id'],
+                                 author=request.user, content=content,
                                  created_at=now, updated_at=now, claim=newClaim)
     claim_version.save()
     data_hl_ids_list = data_hl_ids.strip().split(" ")
     for data_hl_id in data_hl_ids_list:
-        newHighlightClaim = HighlightClaim(claim_id=newClaim.id, highlight_id=data_hl_id)
+        newHighlightClaim = HighlightClaim(claim_id=newClaim.id,
+                                           highlight_id=data_hl_id)
         newHighlightClaim.save()
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
@@ -356,7 +408,8 @@ def api_change_to_nugget(request):
             highlights = section.highlights.filter(is_nugget=True)
             for highlight in highlights:
                 context['highlights'].append(highlight.getAttr())
-    response['workbench_nuggets'] = render_to_string("workbench-nuggets.html", context)
+    response['workbench_nuggets'] = render_to_string("workbench-nuggets.html",
+                                                     context)
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
@@ -369,7 +422,8 @@ def api_change_to_nugget_1(request):
     hl.is_nugget = True
     hl.save()
     context['highlight'] = hl.getAttr()
-    response['workbench_single_nugget'] = render_to_string("workbench-single-nugget.html", context)
+    response['workbench_single_nugget'] = render_to_string(
+        "workbench-single-nugget.html", context)
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
@@ -382,7 +436,8 @@ def api_remove_nugget(request):
     hl.is_nugget = False
     hl.save()
     context['highlight'] = hl.getAttr()
-    response['workbench_single_nugget'] = render_to_string("workbench-single-nugget.html", context)
+    response['workbench_single_nugget'] = render_to_string(
+        "workbench-single-nugget.html", context)
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
@@ -397,15 +452,19 @@ def get_nugget_list(request):
             highlights = section.highlights.all()
             for highlight in highlights:
                 highlight_info = highlight.getAttr()
-                highlight_info["doc_id"] = DocSection.objects.get(id=highlight.context.id).doc.id
+                highlight_info["doc_id"] = DocSection.objects.get(
+                    id=highlight.context.id).doc.id
                 highlight_info["is_author"] = (highlight.author == request.user)
-                highlight_info["author_intro"] = UserInfo.objects.get(user=highlight.author).description
+                highlight_info["author_intro"] = UserInfo.objects.get(
+                    user=highlight.author).description
                 highlight_info["author_id"] = highlight.author.id
                 # highlight_info["theme_desc"] = highlight.theme.description
-                highlight_info["comment_number"] = NuggetComment.objects.filter(highlight_id=highlight.id).count()
+                highlight_info["comment_number"] = NuggetComment.objects.filter(
+                    highlight_id=highlight.id).count()
                 context['highlights'].append(highlight_info)
     context['highlights'].sort(key=lambda x: x["created_at"], reverse=True)
-    response['workbench_nugget_list'] = render_to_string("phase1/nugget_list.html", context)
+    response['workbench_nugget_list'] = render_to_string(
+        "phase1/nugget_list.html", context)
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
@@ -418,7 +477,8 @@ def api_load_nugget_list_partial(request):
     for highlight_id in highlight_ids:
         highlight = Highlight.objects.get(id=highlight_id)
         context['highlights'].append(highlight.getAttr())
-    response['workbench_nugget_list'] = render_to_string("workbench-nuggets.html", context)
+    response['workbench_nugget_list'] = render_to_string(
+        "workbench-nuggets.html", context)
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
@@ -433,16 +493,20 @@ def api_load_claim_list_partial(request):
         claim = highlightClaim.claim
         item = {}
         item['date'] = utils.pretty_date(claim.updated_at)
-        item['content'] = unicode(ClaimVersion.objects.filter(claim_id=claim.id)[0]) + " (" + claim.claim_category + ")"
+        item['content'] = unicode(
+            ClaimVersion.objects.filter(claim_id=claim.id)[
+                0]) + " (" + claim.claim_category + ")"
         item['id'] = claim.id
-        item['author_name'] = claim.author.first_name + " " + claim.author.last_name
+        item[
+            'author_name'] = claim.author.first_name + " " + claim.author.last_name
         item['is_author'] = (request.user == claim.author)
         item['highlight_ids'] = ""
         for highlight in claim.source_highlights.all():
             item['highlight_ids'] += (str(highlight.id) + " ")
         item['highlight_ids'].strip(" ")
         context["claims"].append(item)
-    response['workbench_claims'] = render_to_string("workbench-claims.html", context)
+    response['workbench_claims'] = render_to_string("workbench-claims.html",
+                                                    context)
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
@@ -471,17 +535,21 @@ def get_claim_list(request):
         item['date'] = utils.pretty_date(claim.updated_at)
         item['created_at'] = utils.pretty_date(claim.created_at)
         item['created_at_used_for_sort'] = claim.created_at
-        item['content'] = unicode(ClaimVersion.objects.filter(claim_id=claim.id)[0])
+        item['content'] = unicode(
+            ClaimVersion.objects.filter(claim_id=claim.id)[0])
         item['id'] = claim.id
-        item['author_name'] = claim.author.first_name + " " + claim.author.last_name
+        item[
+            'author_name'] = claim.author.first_name + " " + claim.author.last_name
         item['is_author'] = (request.user == claim.author)
         item['highlight_ids'] = ""
         for highlight in claim.source_highlights.all():
             item['highlight_ids'] += (str(highlight.id) + " ")
         item['highlight_ids'].strip(" ")
         context["claims"].append(item)
-    context['claims'].sort(key=lambda x: x["created_at_used_for_sort"], reverse=True)
-    response['workbench_claims'] = render_to_string("phase2/claim_list.html", context)
+    context['claims'].sort(key=lambda x: x["created_at_used_for_sort"],
+                           reverse=True)
+    response['workbench_claims'] = render_to_string("phase2/claim_list.html",
+                                                    context)
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
@@ -498,31 +566,44 @@ def api_others(request):
         context_id = request.REQUEST.get('contextId')
         # create highlight object
         context = Entry.objects.get(id=context_id)
-        highlight = Highlight(start_pos=start, end_pos=end, context=context, author=request.user)
+        highlight = Highlight(start_pos=start, end_pos=end, context=context,
+                              author=request.user)
         highlight.save()
         response['highlight_id'] = highlight.id
         # then create the content
         now = timezone.now()
         if 'actual_user_id' in request.session:
-            actual_author = User.objects.get(id=request.session['actual_user_id'])
+            actual_author = User.objects.get(
+                id=request.session['actual_user_id'])
         else:
             actual_author = None
         if content_type == 'comment':
             if actual_author:
-                Post.objects.create(forum_id=request.session['forum_id'], author=actual_author, delegator=request.user,
-                                    content=content, created_at=now, updated_at=now, highlight=highlight,
+                Post.objects.create(forum_id=request.session['forum_id'],
+                                    author=actual_author,
+                                    delegator=request.user,
+                                    content=content, created_at=now,
+                                    updated_at=now, highlight=highlight,
                                     content_type='comment')
             else:
-                Post.objects.create(forum_id=request.session['forum_id'], author=request.user, content=content,
-                                    created_at=now, updated_at=now, highlight=highlight, content_type='comment')
+                Post.objects.create(forum_id=request.session['forum_id'],
+                                    author=request.user, content=content,
+                                    created_at=now, updated_at=now,
+                                    highlight=highlight, content_type='comment')
         elif content_type == 'question':
             if actual_author:
-                Post.objects.create(forum_id=request.session['forum_id'], author=actual_author, delegator=request.user,
-                                    content=content, created_at=now, updated_at=now, highlight=highlight,
+                Post.objects.create(forum_id=request.session['forum_id'],
+                                    author=actual_author,
+                                    delegator=request.user,
+                                    content=content, created_at=now,
+                                    updated_at=now, highlight=highlight,
                                     content_type='question')
             else:
-                Post.objects.create(forum_id=request.session['forum_id'], author=request.user, content=content,
-                                    created_at=now, updated_at=now, highlight=highlight, content_type='question')
+                Post.objects.create(forum_id=request.session['forum_id'],
+                                    author=request.user, content=content,
+                                    created_at=now, updated_at=now,
+                                    highlight=highlight,
+                                    content_type='question')
         elif content_type == 'claim':
             claim_views._add_claim(request, highlight)
         return HttpResponse(json.dumps(response), mimetype='application/json')
@@ -541,5 +622,7 @@ def api_others(request):
                     if highlight_info['author_id'] == request.user.id:
                         mytags.add(highlight_info['content'])
                     alltags.add(highlight_info['content'])
-        response['html'] = render_to_string('doc-tag-area.html', {'mytags': mytags, 'alltags': alltags})
+        response['html'] = render_to_string('doc-tag-area.html',
+                                            {'mytags': mytags,
+                                             'alltags': alltags})
         return HttpResponse(json.dumps(response), mimetype='application/json')
