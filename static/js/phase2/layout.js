@@ -8,116 +8,35 @@ define([
 	Utils,
 	QA
 ) {
-	console.log("phase2");
-
 	QA.updateQuestionList();
 
 	var module = {};
-	
-	// theme object
-	module.theme = {};
-	module.theme.themes = {};
-	module.theme.init = function() {
-		module.theme.themes = {};
-	};
-	module.theme.put = function(theme_name, theme_id) {
-		if (!(theme_name in module.theme.themes)) {
-			module.theme.themes[theme_name] = theme_id;
-		}
-	};
-	module.theme.init();
-
-	// module.get_theme_list = function() {
-	// 	var promise = $.ajax({
-	// 		url: '/phase2/get_theme_list/',
-	// 		type: 'post',
-	// 		data: {},
-	// 		success: function(xhr) {
-	// 			module.theme.init();
-	// 			for (var i = 0; i < xhr.themes.length; i++) {
-	// 				var theme = xhr.themes[i];
-	// 				module.theme.put(theme.name, theme.id);
-	// 			}
-	// 			$("#nugget-list-theme").append('<option value="-1">All</option>');
-	// 			for (var theme_name in module.theme.themes) {
-	// 				$("#nugget-list-theme").append('<option value="' + module.theme.themes[theme_name] + '">' + theme_name + '</option>');
-	// 			}
-	// 		},
-	// 		error: function(xhr) {
-	// 			if (xhr.status == 403) {
-	// 				Utils.notify('error', xhr.responseText);
-	// 			}
-	// 		}
-	// 	});
-	// 	return promise;
-	// };
-
-	// module.applyFilter = function() {
-    //
-	// 	$( "#workbench-nugget-list .workbench-nugget" ).hide();
-	// 	$( "#workbench-nugget-list .workbench-nugget" ).filter(function() {
-	// 		if ($("#nugget-list-theme").val() !== "-1") {
-	// 			return $(this).attr("theme-id") == $("#nugget-list-theme").val();
-	// 		} else {
-	// 			return $(this);
-	// 		}
-	// 	}).show();
-	// };
 
 	module.get_nugget_list = function() {
-		var promise = $.ajax({
-			url: '/phase2/get_nugget_list/',
-			type: 'post',
-			success: function(xhr) {
-				$("#workbench-nugget-list").html(xhr.workbench_nugget_list);
+        return $.ajax({
+            url: '/phase2/get_nugget_list/',
+            type: 'post',
+            data: {},
+            success: function(xhr) {
+                $('#statement-container').html(xhr.html);
+                // module.drag_drop_events();
+                var category = sessionStorage.getItem("category");
+                $('.category-tab[data-id=' + category + ']').click();
 
-				for (highlight_id in xhr.highlight2claims) {
-					var nugget = $("#workbench-nugget-list .workbench-nugget[data-hl-id=" + highlight_id + "]");
-					nugget.attr("claim-ids", xhr.highlight2claims[highlight_id]);
-					nugget.find(".use-nugget-num").text("(" + nugget.attr("claim-ids").split(",").length + ")");
-				}
-			
-				// show more... / less
-				// var showChar = 300;
-                // var ellipsestext = "...";
-                // var moretext = "more";
-                // var lesstext = "less";
-                // $('.more').each(function() {
-			     //    var content = $(this).html();
-			     //    if(content.length > showChar) {
-			     //        var c = content.substr(0, showChar); // aaa b/bb ccc ddd
-			     //        var h = content.substr(showChar, content.length - showChar); // bbb ccc ddd
-			     //        var html = c + '<span class="moreellipses">' + ellipsestext+ '&nbsp;</span><span class="morecontent"><span>' + h + '</span>&nbsp;&nbsp;<a href="" class="morelink">' + moretext + '</a></span>';
-			     //        $(this).html(html);
-			     //    }
-                // });
-                // $(".morelink").click(function(){
-			     //    if($(this).hasClass("less")) {
-			     //        $(this).removeClass("less");
-			     //        $(this).html(moretext);
-			     //    } else {
-			     //        $(this).addClass("less");
-			     //        $(this).html(lesstext);
-			     //    }
-			     //    $(this).parent().prev().toggle();
-			     //    $(this).prev().toggle();
-			     //    return false;
-                // });
-
-                // $(".avatar1").popup('remove popup').popup('destroy');
-				// $(".avatar1").popup();
-                // module.applyFilter();
-				// $(".workbench-nugget .action-bar").hide();
-				// $(".workbench-nugget .divider").hide();
-			},			
-			error: function(xhr) {
-				if (xhr.status == 403) {
-					Utils.notify('error', xhr.responseText);
-				}
-			}
-		});
-		return promise;
-	};
+                for (highlight_id in xhr.highlight2claims) {
+                    var nugget = $("#workbench-nugget-list .workbench-nugget[data-hl-id=" + highlight_id + "]");
+                    nugget.attr("claim-ids", xhr.highlight2claims[highlight_id]);
+                    nugget.find(".use-nugget-num").text("(" + nugget.attr("claim-ids").split(",").length + ")");
+                }
+            },
+            error: function(xhr) {
+                $('#draft-stmt').css('opacity', '1.0');
+                if (xhr.status == 403) {
+                    Utils.notify('error', xhr.responseText);
+                }
+            }
+        });
+    }
 
 	module.get_claim_list = function() {
 		var promise = $.ajax({

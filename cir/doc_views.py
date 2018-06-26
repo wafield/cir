@@ -113,8 +113,7 @@ def api_highlight(request):
                 else:
                     Post.objects.create(forum_id=request.session['forum_id'], author=request.user, content=content,
                         created_at=now, updated_at=now, highlight=highlight, content_type='question')
-            elif content_type == 'claim':
-                print ""
+
             # 2016/11/30: now a nugget is directly converted to a claim
             category = request.REQUEST.get('category')
             now = timezone.now()
@@ -138,8 +137,8 @@ def api_highlight(request):
         slot = Claim.objects.get(id=request.REQUEST['slot_id'])
 
         # create the link from source claim (newly added nugget) to target claim (question slot).
-        if not ClaimReference.objects.filter(refer_type='stmt', from_claim=claim, to_claim=slot).exists():
-            ClaimReference.objects.create(refer_type='stmt', from_claim=claim, to_claim=slot)
+        if not ClaimReference.objects.filter(refer_type='nugget', from_claim=claim, to_claim=slot).exists():
+            ClaimReference.objects.create(refer_type='nugget', from_claim=claim, to_claim=slot)
 
         # add entry of claim assignment activity to the slot.
         if 'actual_user_id' in request.session:

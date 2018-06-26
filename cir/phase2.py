@@ -363,35 +363,40 @@ def api_remove_nugget(request):
 
 
 def get_nugget_list(request):
+    """
+    Get list of nuggets (claims), in categories.
+    :param request:
+    :return:
+    """
+    forum = Forum.objects.get(id=request.session['forum_id'])
     response = {}
     context = {}
-    docs = Doc.objects.filter(forum_id=request.session["forum_id"])
-    items = []
-    for doc in docs:
-        for section in doc.sections.all():
-            highlights = section.highlights.all()
-            for highlight in highlights:
-                highlight_info = highlight.getAttr()
-                highlight_info["doc_id"] = DocSection.objects.get(id=highlight.context.id).doc.id
-                # highlight_info["theme_desc"] = highlight.theme.description
-                highlight_info["is_author"] = (highlight.author == request.user)
-                highlight_info["author_intro"] = UserInfo.objects.get(user=highlight.author).description
-                highlight_info["author_id"] = highlight.author.id
-                highlight_info["comment_number"] = NuggetComment.objects.filter(highlight_id=highlight.id).count()
-                items.append(highlight_info)
-    # context['highlights'].sort(key = lambda x: x["created_at"], reverse=True)
-    # random order nugget list
-    random.shuffle(items)
-    context['highlights'] = items
+    if request.REQUEST.get('category'):
+        category_list = [request.REQUEST['category']]
+    else:
+        category_list = ['finding', 'pro', 'con']
+    context['categories'] = {}
+    response['slots_cnt'] = {'finding': 0, 'pro': 0, 'con': 0}
     response['highlight2claims'] = {}
-    for highlight in context['highlights']:
-        highlightClaims = HighlightClaim.objects.filter(highlight_id=highlight['id'])
-        if highlightClaims.count() > 0:
-            s = []
-            for highlightClaim in highlightClaims:
-                s.append(highlightClaim.claim_id)
-            response['highlight2claims'][highlight["id"]] = s
-    response['workbench_nugget_list'] = render_to_string("phase2/nugget_list.html", context)
+    slots = Claim.objects.filter(forum=forum, is_deleted=False,
+                                 stmt_order__isnull=False)
+    for category in category_list:
+        slots = slots.filter(claim_category=category).order_by('stmt_order')
+
+        context['categories'][category] = [slot.getAttrSlot(forum) for slot in
+                                           slots]
+        response['slots_cnt'][category] += len(context['categories'][category])
+        # Put together a list of [nugget_id, list_of_claim_id] to indicate which
+        # nugget has been used in which claim.
+        for slot_info in context['categories'][category]:
+            for nugget_info in slot_info['nuggets']:
+                for ref in ClaimReference.objects.filter(refer_type='stmt',
+                                                         from_claim_id=nugget_info['id']):
+                    if nugget_info['id'] not in response['highlight2claims']:
+                        response['highlight2claims'][nugget_info['id']] = []
+                    response['highlight2claims'][nugget_info['id']].append(ref.to_claim.id)
+
+    response['html'] = render_to_string('phase2/nuggets.html', context)
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
@@ -714,42 +719,62 @@ def update_question_isresolved(request):
 
 
 def get_claim_list(request):
+    """
+    Get list of claims, by category.
+    :param request:
+    :return:
+    """
     forum = Forum.objects.get(id=request.session['forum_id'])
     response = {}
     context = {}
-    claims = Claim.objects.filter(forum=forum, is_deleted=False, published=True, stmt_order__isnull=True)
-    # claims = Claim.objects.filter(forum = forum, stmt_order__isnull = True)
-    context['claims'] = []
-    for claim in claims:
-        item = {}
-        item['date'] = utils.pretty_date(claim.updated_at)
-        item['created_at'] = utils.pretty_date(claim.created_at)
-        item['created_at_used_for_sort'] = claim.created_at
-        print "claim_id = ", claim.id
-        if (ClaimVersion.objects.filter(claim_id=claim.id, is_adopted=True).count() > 0):
-            item['content'] = unicode(ClaimVersion.objects.filter(claim_id=claim.id, is_adopted=True)[0])
-            item['content'] = item['content'] if (not item['content'] == "") else "(The claim is under construction.)"
-        else:
-            item['content'] = "(The claim is under construction.)"
-        item['id'] = claim.id
-        item['author_name'] = claim.author.first_name + " " + claim.author.last_name
-        item["author_intro"] = UserInfo.objects.get(user=claim.author).description
-        item["author_id"] = claim.author.id
-        item['is_author'] = (request.user == claim.author)
-        arr = []
-        for highlight in claim.source_highlights.all():
-            arr.append(str(highlight.id))
-        item['highlight_ids'] = ",".join(arr)
-        item['themes'] = []
-        for claimAndTheme in ClaimAndTheme.objects.filter(claim=claim):
-            theme = claimAndTheme.theme
-            if theme not in item['themes']:
-                item['themes'].append(theme)
-        context['claims'].append(item)
-    context['claims'].sort(key=lambda x: x["created_at_used_for_sort"], reverse=True)
+
+    category_list = ['finding', 'pro', 'con']
+    context['categories'] = {}
+    response['slots_cnt'] = {'finding': 0, 'pro': 0, 'con': 0}
+    slots = Claim.objects.filter(forum=forum, is_deleted=False,
+                                 stmt_order__isnull=False)
+    for category in category_list:
+        context['categories'][category] = [slot.getAttrSlot(forum) for slot in
+                                           slots.filter(
+                                               claim_category=category).order_by(
+                                               'stmt_order')]
+        response['slots_cnt'][category] += len(context['categories'][category])
+
+
+    # claims = Claim.objects.filter(forum=forum, is_deleted=False, published=True, stmt_order__isnull=True)
+    # context['claims'] = []
+    # for claim in claims:
+    #     item = {}
+    #     item['date'] = utils.pretty_date(claim.updated_at)
+    #     item['created_at'] = utils.pretty_date(claim.created_at)
+    #     item['created_at_used_for_sort'] = claim.created_at
+    #     print "claim_id = ", claim.id
+    #     if (ClaimVersion.objects.filter(claim_id=claim.id, is_adopted=True).count() > 0):
+    #         item['content'] = unicode(ClaimVersion.objects.filter(claim_id=claim.id, is_adopted=True)[0])
+    #         item['content'] = item['content'] if (not item['content'] == "") else "(The claim is under construction.)"
+    #     else:
+    #         item['content'] = "(The claim is under construction.)"
+    #     item['id'] = claim.id
+    #     item['author_name'] = claim.author.first_name + " " + claim.author.last_name
+    #     item["author_intro"] = UserInfo.objects.get(user=claim.author).description
+    #     item["author_id"] = claim.author.id
+    #     item['is_author'] = (request.user == claim.author)
+    #     arr = []
+    #     for highlight in claim.source_highlights.all():
+    #         arr.append(str(highlight.id))
+    #     item['highlight_ids'] = ",".join(arr)
+    #     item['themes'] = []
+    #     for claimAndTheme in ClaimAndTheme.objects.filter(claim=claim):
+    #         theme = claimAndTheme.theme
+    #         if theme not in item['themes']:
+    #             item['themes'].append(theme)
+    #     context['claims'].append(item)
+    # context['claims'].sort(key=lambda x: x["created_at_used_for_sort"], reverse=True)
     # random order nugget list
     # random.shuffle(items)
-    response['workbench_claims'] = render_to_string("phase2/claim_list.html", context)
+
+    response['workbench_claims'] = render_to_string('phase2/statement.html', context)
+    # response['workbench_claims'] = render_to_string("phase2/claim_list.html", context)
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 

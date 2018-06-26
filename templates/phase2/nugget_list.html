@@ -1,49 +1,72 @@
-{% if highlights %}
-	{% for highlight in highlights %}
-		{% if highlight.is_nugget %}
-			<div class="ui segment workbench-nugget nugget-related" style="margin: 5px;" data-hl-id = {{ highlight.id }} theme-id = {{ highlight.theme_id }}>
-				<a class="ui small green right corner label nugget-select-mark" style="display:none;">
-					<i class="checkmark icon"></i>
-				</a>
-				<div class="content">
-					<div class="description more" data="{{ highlight.text}}">
-						{{ highlight.text }}
-					</div>
-				</div>
-				<div class="ui divider" style="margin: 5px 0;"></div>
-				<div class="action-bar discription" style="color:rgba(0,0,0,.4);">
-					<a class="ui basic label theme-label" theme-id="{{ highlight.theme_id }}" data-content="{{ highlight.theme_desc }}">{{ highlight.theme }}</a>
-					<a class="ui basic image label avatar1" data-id="{{ highlight.author_id }}" data-content="{{ highlight.author_intro }}">
-						<img src="{{ STATIC_URL }}/static/pictures/{{ highlight.author_id }}.png" onerror="this.src = '{{ STATIC_URL }}/static/pictures/default-avatar.png';">
-						{{ highlight.author_name }}
-					</a>
-					<span class="ui basic label">{{ highlight.created_at_pretty }}</span>
-					<span style="float:right;" class="actions">
-						<a href="#" class="item source-nugget">context</a>
-						<span> | </span>
-						<a href="#" class="item comment-nugget">comment</a>
-						{% if highlight.comment_number != 0 %}
-							<a href="#" class="item comment-nugget-number">({{ highlight.comment_number }})</a>
-						{% endif %}
-						<span> | </span>
-						<a href="#" class="item use-nugget">adopt</a>
-						<a href="#" class="item use-nugget-num"></a>
-					</span>
-				</div>	
-			</div>
-		{% endif %}
-	{% endfor %}
-{% else %}
-		<div class="ui card" style="background: PapayaWhip;">
-				<div class="content">
-					<div class="description">
-						No nuggets yet.
-					</div>
-				</div>
-		</div>
-{% endif %}
+{% for slot_info in categories %}
+    <div class="ui vertical segment statement-entry"
+         data-id="{{ slot_info.id }}">
+        <h3>Question: {{ slot_info.slot_title }}</h3>
+        <button class="show-workspace" data-id="{{ slot_info.id }}"
+                style="display:none;">
+            open workspace
+        </button>
 
-<div id="document-container-modal" class="ui small modal">
-    <i class="close icon"></i>
-    <div class="content" id="document-container"></div>
-</div>
+
+        {% if slot_info.adopted_versions %}
+            <div class="ui stacked segments" style="margin-top:1rem;">
+                {% for stmt in slot_info.adopted_versions %}
+                    <div class="src_claim ui segment" data-id="{{ stmt.id }}"
+                         style="padding: 0 1rem;">
+                        <h4 style="margin: 1rem 0;">
+                            [Statement] {{ stmt.content | safe }}</h4>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="ui divided list" style="padding: 0 2em;">
+            {% if slot_info.nuggets %}
+
+                {% for src_claim in slot_info.nuggets %}
+                    <div class="src_claim item" data-id="{{ src_claim.id }}"
+                         style="padding: 1em 0; position:relative;">
+                        [Nugget] {{ src_claim.content | safe | truncatechars:300 }}
+                        <div class="description action-bar"
+                             style="margin-top: 10px; color:rgba(0,0,0,.4);">
+                            <a class="ui basic image label avatar1"
+                               data-id="{{ src_claim.author_id }}"
+                               data-content="{{ src_claim.author_intro }}"
+                               data-inverted="">
+                                <img src="{{ STATIC_URL }}/static/pictures/{{ src_claim.author_id }}.png"
+                                     onerror="this.src = '{{ STATIC_URL }}/static/pictures/default-avatar.png';">
+                                {{ src_claim.author_name }}
+                            </a>
+                            {{ src_claim.created_at_pretty }}
+                            <div class="actions"
+                                 style="margin-top:5px;float:right;">
+                                <a href="#"
+                                   class="item source-nugget" style="display:none">Context</a>
+                                <span style="display:none"> | </span>
+                                <a href="#"
+                                   class="item comment-nugget"
+                                   style="display:none">Comment</a>
+                                {% if src_claim.comment_number != 0 %}
+                                    <a href="#"
+                                       class="item comment-nugget-number">({{ src_claim.comment_number }})</a>
+                                {% endif %}
+                                {% if src_claim.is_author %}
+                                    <span> | </span>
+                                    <a href="#" class="item delete-nugget">Delete</a>
+                                {% endif %}
+                                <a href="#"
+                                   class="item use-nugget">Use
+                                    <i class="move-claim-handle move icon"></i>
+                                </a>
+
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+
+            {% else %}
+                (No nuggets for now.)
+            {% endif %}
+        </div>
+    </div>
+{% endfor %}

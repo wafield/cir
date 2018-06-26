@@ -1,5 +1,5 @@
 from django.contrib import admin
-
+from django.utils.html import format_html
 from models import *
 
 def user_unicode(self):
@@ -35,7 +35,16 @@ class HighlightAdmin(admin.ModelAdmin):
             return self.context.content[:100]
     def forum(self):
         return self.context.forum
-    list_display = (forum, context_type, context_content, 'author', 'is_nugget', 'created_at')
+
+    def claimref(self):
+        relations = ''
+        refs = HighlightClaim.objects.filter(highlight=self)
+        for ref in refs:
+            relations = relations + ('in claim <a href="/admincir/claim/%d/">%d</a>' % (ref.claim.id,
+                                                                                        ref.claim.id))
+        return format_html(relations)
+
+    list_display = (forum, context_type, context_content, 'author', claimref, 'is_nugget', 'created_at')
     list_filter = ('context__forum', )
 
 class DocAdmin(admin.ModelAdmin):
@@ -79,20 +88,28 @@ class ClaimAdmin(admin.ModelAdmin):
             return "%s %s" % (self.delegator.first_name, self.delegator.last_name)
         return '(None)'
 
-    def duplicate(modeladmin, request, queryset):
-        for object in queryset:
-            object.id = None
-            object.save()
-
-    duplicate.short_description = "Duplicate selected claim"
-    actions = [duplicate]
+    def relations(self):
+        nugget_id = []
+        used_in_stmt = []
+        for claimref in self.older_versions.all():
+            if claimref.refer_type == 'nugget':
+                nugget_id.append(str(claimref.from_claim.id))
+            elif claimref.refer_type == 'stmt':
+                used_in_stmt.append(str(claimref.from_claim.id))
+        relations = ''
+        if nugget_id:
+            relations = relations + ('is nugget to: %s. ' % (';'.join(nugget_id)))
+        if used_in_stmt:
+            relations = relations + ('used in stmts: %s. ' % (';'.join(used_in_stmt)))
+        return relations
 
     author_name.short_description = 'Author of claim'
     claim_content.short_description = 'Content of adopted version'
     claim_content.allow_tags = True
     version_author.short_description = 'Author of adopted version'
-    list_display = (author_name, delegator_name, version_author, claim_content, 'claim_category', 'theme', 'created_at', 'is_deleted')
-    list_filter = ('forum', 'claim_category', 'theme')
+    list_display = ('id', author_name, delegator_name, version_author, claim_content,
+                    relations, 'claim_category', 'stmt_order', 'created_at', 'is_deleted')
+    list_filter = ('forum', 'claim_category', 'stmt_order')
     ordering = ('-created_at', )
 
 class PostAdmin(admin.ModelAdmin):
@@ -140,5 +157,6 @@ admin.site.register(ClaimTheme, ClaimThemeAdmin)
 admin.site.register(Claim, ClaimAdmin)
 admin.site.register(Post, PostAdmin)
 admin.site.register(ClaimVersion, ClaimVersionAdmin)
+admin.site.register(EntryCategory, EntryCategoryAdmin)
 admin.site.register(Highlight, HighlightAdmin)
 admin.site.register(Tag, TagAdmin)

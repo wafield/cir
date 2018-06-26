@@ -110,7 +110,7 @@ define([
 
 	module.update_statement = function() {
 		return $.ajax({
-			url: '/api_draft_stmt/',
+			url: '/phase1/get_nugget_list/',
 			type: 'post',
 			data: {},
 			success: function(xhr) {

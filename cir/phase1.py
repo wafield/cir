@@ -310,7 +310,7 @@ def get_highlights(request):
                 claim = HighlightClaim.objects.filter(
                     highlight_id=Highlight.objects.get(id=highlight.id))[
                     0].claim
-                for ref in ClaimReference.objects.filter(refer_type='stmt',
+                for ref in ClaimReference.objects.filter(refer_type='nugget',
                                                          from_claim=claim):
                     slot = ref.to_claim
                     info = str(slot.claim_category.upper()[:1]) + "Q" + str(
@@ -442,29 +442,30 @@ def api_remove_nugget(request):
 
 
 def get_nugget_list(request):
+    """
+    Get list of nuggets (claims), in categories.
+    :param request:
+    :return:
+    """
+    forum = Forum.objects.get(id=request.session['forum_id'])
     response = {}
     context = {}
-    # theme_id = int(request.REQUEST.get("theme_id"))
-    docs = Doc.objects.filter(forum_id=request.session["forum_id"])
-    context['highlights'] = []
-    for doc in docs:
-        for section in doc.sections.all():
-            highlights = section.highlights.all()
-            for highlight in highlights:
-                highlight_info = highlight.getAttr()
-                highlight_info["doc_id"] = DocSection.objects.get(
-                    id=highlight.context.id).doc.id
-                highlight_info["is_author"] = (highlight.author == request.user)
-                highlight_info["author_intro"] = UserInfo.objects.get(
-                    user=highlight.author).description
-                highlight_info["author_id"] = highlight.author.id
-                # highlight_info["theme_desc"] = highlight.theme.description
-                highlight_info["comment_number"] = NuggetComment.objects.filter(
-                    highlight_id=highlight.id).count()
-                context['highlights'].append(highlight_info)
-    context['highlights'].sort(key=lambda x: x["created_at"], reverse=True)
-    response['workbench_nugget_list'] = render_to_string(
-        "phase1/nugget_list.html", context)
+    # for all actions, return updated lists
+    if request.REQUEST.get('category'):
+        category_list = [request.REQUEST['category']]
+    else:
+        category_list = ['finding', 'pro', 'con']
+    context['categories'] = {}
+    response['slots_cnt'] = {'finding': 0, 'pro': 0, 'con': 0}
+    slots = Claim.objects.filter(forum=forum, is_deleted=False,
+                                 stmt_order__isnull=False)
+    for category in category_list:
+        context['categories'][category] = [slot.getAttrSlot(forum) for slot in
+                                           slots.filter(
+                                               claim_category=category).order_by(
+                                               'stmt_order')]
+        response['slots_cnt'][category] += len(context['categories'][category])
+    response['html'] = render_to_string('phase1/statement.html', context)
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
@@ -481,33 +482,6 @@ def api_load_nugget_list_partial(request):
         "workbench-nuggets.html", context)
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
-
-def api_load_claim_list_partial(request):
-    response = {}
-    context = {}
-    context['highlights'] = []
-    highlight_id = request.REQUEST.get("highlight_id")
-    highlightClaims = HighlightClaim.objects.filter(highlight_id=highlight_id)
-    context["claims"] = []
-    for highlightClaim in highlightClaims:
-        claim = highlightClaim.claim
-        item = {}
-        item['date'] = utils.pretty_date(claim.updated_at)
-        item['content'] = unicode(
-            ClaimVersion.objects.filter(claim_id=claim.id)[
-                0]) + " (" + claim.claim_category + ")"
-        item['id'] = claim.id
-        item[
-            'author_name'] = claim.author.first_name + " " + claim.author.last_name
-        item['is_author'] = (request.user == claim.author)
-        item['highlight_ids'] = ""
-        for highlight in claim.source_highlights.all():
-            item['highlight_ids'] += (str(highlight.id) + " ")
-        item['highlight_ids'].strip(" ")
-        context["claims"].append(item)
-    response['workbench_claims'] = render_to_string("workbench-claims.html",
-                                                    context)
-    return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
 def api_edit_claim(request):

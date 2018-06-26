@@ -11,7 +11,7 @@ import tag_views
 import workbench_views
 import chatter_views
 import vis_views
-import sankey_views
+# import sankey_views
 
 import phase0
 import phase1
@@ -100,18 +100,18 @@ urlpatterns = patterns('',
     url(r'^phase2/expert_question/$', phase2.expert_question),
     url(r'^phase2/delete_question/$', phase2.delete_question),
 
-    url(r'^sankey/get_graph/$', sankey_views.get_graph),
-    url(r'^sankey/get_doc/$', sankey_views.get_doc),
-    url(r'^sankey/get_doc_coverage/$', sankey_views.get_doc_coverage),
-    url(r'^sankey/get_entities/$', sankey_views.get_entities),
-    url(r'^sankey/put_viewlog/$', sankey_views.put_viewlog),
-    url(r'^sankey/get_viewlog/$', sankey_views.get_viewlog),
-    url(r'^sankey/put_nuggetmap/$', sankey_views.put_nuggetmap),
-    url(r'^sankey/get_nuggetmap/$', sankey_views.get_nuggetmap),
-    url(r'^sankey/get_highlights/$', sankey_views.get_highlights),
-    url(r'^sankey/get_highlights2/$', sankey_views.get_highlights2),
-    url(r'^sankey/get_timerange/$', sankey_views.get_timerange),
-    url(r'^sankey/nuggetlens/$', sankey_views.nuggetlens),
+    # url(r'^sankey/get_graph/$', sankey_views.get_graph),
+    # url(r'^sankey/get_doc/$', sankey_views.get_doc),
+    # url(r'^sankey/get_doc_coverage/$', sankey_views.get_doc_coverage),
+    # url(r'^sankey/get_entities/$', sankey_views.get_entities),
+    # url(r'^sankey/put_viewlog/$', sankey_views.put_viewlog),
+    # url(r'^sankey/get_viewlog/$', sankey_views.get_viewlog),
+    # url(r'^sankey/put_nuggetmap/$', sankey_views.put_nuggetmap),
+    # url(r'^sankey/get_nuggetmap/$', sankey_views.get_nuggetmap),
+    # url(r'^sankey/get_highlights/$', sankey_views.get_highlights),
+    # url(r'^sankey/get_highlights2/$', sankey_views.get_highlights2),
+    # url(r'^sankey/get_timerange/$', sankey_views.get_timerange),
+    # url(r'^sankey/nuggetlens/$', sankey_views.nuggetlens),
 
     url(r'^api_chatter/$', chatter_views.api_chatter),
 

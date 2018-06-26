@@ -48,49 +48,67 @@
 	{% else %}
 
 <!-- left panel -->
-        <div id="slot-overview"
-             style="font-size:1.2em; position:fixed; top:40px; bottom:0; left:0; right:50%; margin:0 1em;">
-            <div style="height: 100%;">
-                <div class="ui top attached tabular menu">
-                    <div class="item">
-                        Nuggets Pane
-                    </div>
-                    <div class="right top attached tabular menu">
-                        <a class="category-tab item active" data-id="finding">
-                            Key Findings
-                        </a>
-                        <a class="category-tab item" data-id="pro">
-                            Proponent
-                        </a>
-                        <a class="category-tab item" data-id="con">
-                            Opponent
-                        </a>
-                    </div>
-                </div>
-                <div id="statement-container"
-                     class="ui bottom attached segment"
-                     style="height: calc(100% - 47px); overflow:hidden; overflow-y:scroll; ">
-                    <div class="ui active text loader"></div>
-                </div>
+<div id="slot-overview"
+     style="font-size:1.2em; position:fixed; top:40px; bottom:0; left:0; right:50%; margin:0 1em;">
+    <div style="height: 100%;">
+        <div class="ui top attached tabular menu">
+            <div class="item">
+                Nuggets Pane
+            </div>
+            <div class="right top attached tabular menu">
+                <a class="category-tab item active" data-id="finding">
+                    Key Findings
+                </a>
+                <a class="category-tab item" data-id="pro">
+                    Proponent
+                </a>
+                <a class="category-tab item" data-id="con">
+                    Opponent
+                </a>
             </div>
         </div>
-<!-- right panel -->
-<div style="font-size:1.2em; position:fixed; top:50px; bottom:0; left:50%; right:0;">
-	<div style="padding-left: 2em;">
-		<div class="ui text menu">
-			<div class="header item">claim</div>	
-			<div class="item" id="add-new-claim">
-				<button class="ui circular icon button"><i class="plus icon"></i></button>
-			</div>
-		</div>
-	</div>
-	<div id="feng-claim-panel" style="overflow:auto; top:60px; bottom:0; position:absolute; padding:1em; left:0; width:100%; max-width:640px;  padding-top: 0;">
-		<a href="#" id="claim-list-back" style="display:none;"><i class="icon angle left"></i>back to full list</a>
-		<div id="claim-detail" class="ui segment" style="display:none; margin-top:0;"></div>
-		<div id="claim-list" class="ui segments" style="border-radius:0; margin-top:0;"></div>		
-	</div>
+        <div id="statement-container"
+             class="ui bottom attached segment"
+             style="height: calc(100% - 47px); overflow:hidden; overflow-y:scroll; ">
+            <div class="ui active text loader"></div>
+        </div>
+    </div>
 </div>
-
+<!-- right panel -->
+<div id="slot-overview-claim"
+     style="font-size:1.2em; position:fixed; top:40px; bottom:0; left:50%; right:0; margin:0 1em;">
+    <div style="height: 100%;">
+        <div class="ui top attached tabular menu">
+            <div class="item">
+                Claims Pane
+            </div>
+            <div class="item">
+                <a href="#" class="ui primary button" id="add-new-claim">Create</a>
+            </div>
+            <div class="right top attached tabular menu">
+                <a class="category-tab item active" data-id="finding">
+                    Key Findings
+                </a>
+                <a class="category-tab item" data-id="pro">
+                    Proponent
+                </a>
+                <a class="category-tab item" data-id="con">
+                    Opponent
+                </a>
+            </div>
+        </div>
+        <div id="feng-claim-panel"
+             class="ui bottom attached segment"
+             style="height: calc(100% - 47px); overflow:hidden; overflow-y:scroll; ">
+            <a href="#" id="claim-list-back" style="display:none;"><i
+                    class="icon angle left"></i>back to full list</a>
+            <div id="claim-detail"
+                 style="display:none; margin-top:0;"></div>
+            <div id="claim-list"
+                 style="border-radius:0; margin-top:0;"></div>
+        </div>
+    </div>
+</div>
 
 
 {% if role != 'visitor' %}

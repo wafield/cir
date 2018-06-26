@@ -18,11 +18,11 @@
         {% endif %}
 
         <div class="ui divided list" style="padding: 0 2em;">
-        {% if slot_info.nuggets %}
+        {% if slot_info.claims %}
 
-            {% for src_claim in slot_info.nuggets %}
+            {% for src_claim in slot_info.claims %}
                 <div class="src_claim item" data-id="{{ src_claim.id }}" style="padding: 1em 0; position:relative;">
-                    [Nugget] {{ src_claim.content | safe | truncatechars:300 }}
+                    [Claim] {{ src_claim.content | safe | truncatechars:300 }}
                     <div class="description action-bar" style="margin-top: 10px; color:rgba(0,0,0,.4);">
                         <a class="ui basic image label avatar1" data-id="{{ src_claim.author_id }}"
                            data-content="{{ src_claim.author_intro }}" data-inverted="">
@@ -48,7 +48,7 @@
             {% endfor %}
 
         {% else %}
-            (No nuggets for now.)
+            (No claims for now.)
         {% endif %}
         </div>
 	</div>
