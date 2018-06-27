@@ -587,7 +587,7 @@ class ClaimNuggetAssignment(Event):
         ('remove', 'Remove a nugget'),
     )
     claim = models.ForeignKey(Claim)
-    nugget = models.ForeignKey(Highlight)
+    nugget = models.ForeignKey(Claim, related_name='nugget_assignment_events')
     event_type = models.CharField(max_length=20, choices=EVENT_CHOICES)
 
     def getAttr(self, forum):

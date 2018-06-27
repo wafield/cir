@@ -1,69 +1,71 @@
 {% for slot_info in categories %}
-    <div class="ui vertical segment"
-         data-id="{{ slot_info.id }}">
-        <h3>Question: {{ slot_info.slot_title }}</h3>
-        <button class="show-workspace" data-id="{{ slot_info.id }}"
-                style="display:none;">
-            open workspace
-        </button>
+  <div class="ui vertical segment"
+       data-id="{{ slot_info.id }}">
+    <h3>Question: {{ slot_info.slot_title }}</h3>
+    <button class="show-workspace" data-id="{{ slot_info.id }}"
+            style="display:none;">
+      open workspace
+    </button>
 
-        {% if slot_info.adopted_versions %}
-            <div class="ui stacked segments" style="margin-top:1rem;">
-                {% for stmt in slot_info.adopted_versions %}
-                    <div class="src_claim ui segment" data-id="{{ stmt.id }}"
-                         style="padding: 0 1rem;">
-                        <h4 style="margin: 1rem 0;">
-                            [Statement] {{ stmt.content | safe }}</h4>
-                    </div>
-                {% endfor %}
+    {% if slot_info.adopted_versions %}
+      <div class="ui stacked segments" style="margin-top:1rem;">
+        {% for stmt in slot_info.adopted_versions %}
+          <div class="src_claim ui segment" data-id="{{ stmt.id }}"
+               style="padding: 0 1rem;">
+            <h4 style="margin: 1rem 0;">
+              [Statement] {{ stmt.content | safe }}</h4>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="ui divided list" style="padding: 0 2em;">
+      {% if slot_info.nuggets %}
+
+        {% for src_claim in slot_info.nuggets %}
+          <div class="src_claim item" style="cursor:move;" draggable="true"
+               ondragstart="onDragStart(event)" data-id="{{ src_claim.id }}"
+               style="padding: 1em 0; position:relative;">
+            <div class="content">
+              [Nugget] {{ src_claim.content | safe }}
             </div>
-        {% endif %}
+            <div class="description action-bar"
+                 style="margin-top: 10px; color:rgba(0,0,0,.4);">
+              <a class="ui basic image label avatar1"
+                 data-id="{{ src_claim.author_id }}"
+                 data-content="{{ src_claim.author_intro }}"
+                 data-inverted="">
+                <img
+                    src="{{ STATIC_URL }}/static/pictures/{{ src_claim.author_id }}.png"
+                    onerror="this.src = '{{ STATIC_URL }}/static/pictures/default-avatar.png';">
+                {{ src_claim.author_name }}
+              </a>
+              {{ src_claim.created_at_pretty }}
+              <div class="actions"
+                   style="margin-top:5px;float:right;">
+                <a href="#"
+                   class="item source-nugget" style="display:none">Context</a>
+                <span style="display:none"> | </span>
+                <a href="#"
+                   class="item comment-nugget"
+                   style="display:none">Comment</a>
+                {% if src_claim.comment_number != 0 %}
+                  <a href="#"
+                     class="item comment-nugget-number"
+                     style="display:none">({{ src_claim.comment_number }})</a>
+                {% endif %}
+                {% if src_claim.is_author %}
+                  <span> | </span>
+                  <a href="#" class="item delete-nugget">Delete</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
 
-        <div class="ui divided list" style="padding: 0 2em;">
-            {% if slot_info.nuggets %}
-
-                {% for src_claim in slot_info.nuggets %}
-                    <div class="src_claim item" style="cursor:move;" draggable="true"
-                         ondragstart="onDragStart(event)" data-id="{{ src_claim.id }}"
-                         style="padding: 1em 0; position:relative;">
-                        <div class="content">
-                            [Nugget] {{ src_claim.content | safe }}
-                        </div>
-                        <div class="description action-bar"
-                             style="margin-top: 10px; color:rgba(0,0,0,.4);">
-                            <a class="ui basic image label avatar1"
-                               data-id="{{ src_claim.author_id }}"
-                               data-content="{{ src_claim.author_intro }}"
-                               data-inverted="">
-                                <img src="{{ STATIC_URL }}/static/pictures/{{ src_claim.author_id }}.png"
-                                     onerror="this.src = '{{ STATIC_URL }}/static/pictures/default-avatar.png';">
-                                {{ src_claim.author_name }}
-                            </a>
-                            {{ src_claim.created_at_pretty }}
-                            <div class="actions"
-                                 style="margin-top:5px;float:right;">
-                                <a href="#"
-                                   class="item source-nugget" style="display:none">Context</a>
-                                <span style="display:none"> | </span>
-                                <a href="#"
-                                   class="item comment-nugget"
-                                   style="display:none">Comment</a>
-                                {% if src_claim.comment_number != 0 %}
-                                    <a href="#"
-                                       class="item comment-nugget-number">({{ src_claim.comment_number }})</a>
-                                {% endif %}
-                                {% if src_claim.is_author %}
-                                    <span> | </span>
-                                    <a href="#" class="item delete-nugget">Delete</a>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-
-            {% else %}
-                (No nuggets for now.)
-            {% endif %}
-        </div>
+      {% else %}
+        (No nuggets for now.)
+      {% endif %}
     </div>
+  </div>
 {% endfor %}

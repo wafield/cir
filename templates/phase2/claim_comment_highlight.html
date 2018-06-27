@@ -1,0 +1,15 @@
+<div class="workbench-claim" data-claim-id="{{ claim.id }}">
+    <a class="ui small red right corner label nugget-select-mark" style="display:none;">
+        <i class="checkmark icon"></i>
+    </a>
+    <div class="content">
+        <div class="description more" style="line-height:1.25em;">
+            [Claim] {{ claim.content }}
+        </div>
+    </div>
+    <div style="color:rgba(0,0,0,.4);">
+        <span>{{ claim.author_name }}</span>
+        <span> | </span>
+        <span>{{ claim.created_at_full }}</span>
+    </div>
+</div>

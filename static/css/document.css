@@ -606,3 +606,8 @@ svg {
   fill-opacity: .125;
   shape-rendering: crispEdges;
 }
+
+
+#workbench-document-panel {
+    font-size: 16px;
+}
