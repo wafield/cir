@@ -59,7 +59,7 @@ define([
 
     module.drag_drop_events = function() {
 
-        var dropTarget = $('.statement-entry'), counter = 0;
+        var counter = 0;
 
         $('.statement-question-title').bind('dragover', function(event) {
             event.preventDefault();
@@ -67,14 +67,6 @@ define([
             counter++;
             $(this).addClass('dragging');
         });
-        // $('.statement-question-title').bind('dragover', function(event) {
-        //     event.preventDefault();
-        //     event.stopPropagation();
-        //     counter--;
-        //     if (counter === 0) {
-        //         $(this).addClass('dragging');
-        //     }
-        // });
         $('.statement-question-title').bind('dragleave', function(event) {
             event.preventDefault();
             event.stopPropagation();
@@ -83,7 +75,6 @@ define([
                 $(this).removeClass('dragging');
             }
         });
-
         $('.statement-question-title').on('drop', function(event) {
             event.preventDefault();
             event.stopPropagation();
@@ -91,6 +82,22 @@ define([
             counter = 0;
             var slot_id = $(this).parent().attr("data-id");
             module.initiateNuggetInSlot(slot_id);
+        });
+
+        $('#claim-list .src_claim').on('dragover', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            $(this).addClass('dragging');
+        }).on('dragleave', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            $(this).removeClass('dragging');
+        }).on('drop', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            $(this).removeClass('dragging');
+            var claim_id = $(this).attr("data-id");
+            module.mergeNuggetToClaim(claim_id);
         });
     };
 
@@ -661,6 +668,10 @@ define([
                 });
             }
         }).modal('show');
+    };
+
+    module.mergeNuggetToClaim = function(claim_id) {
+
     };
 
     module.initLayout();
