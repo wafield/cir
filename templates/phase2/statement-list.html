@@ -1,7 +1,7 @@
 
 {% for slot_info in categories %}
-	<div class="ui vertical segment statement-entry" data-id="{{slot_info.id}}">
-		<h3>Question: {{ slot_info.slot_title }}</h3>
+	<div class="ui vertical segment statement-entry" data-id="{{slot_info.id}}" style="position:relative">
+		<h3 class="statement-question-title">Question: {{ slot_info.slot_title }}</h3>
         <button class="show-workspace" data-id="{{ slot_info.id }}" style="display:none;">
             open workspace
         </button>
@@ -32,9 +32,9 @@
                         </a>
                         {{ src_claim.created_at_pretty }}
                         <div class="actions" style="margin-top:5px;float:right;">
-                            <a href="#" class="item source-nugget">Context</a>
-                            <span> | </span>
-                            <a href="#" class="item comment-nugget">Comment</a>
+                            <a href="#" class="item source-nugget" style="display:none">Context</a>
+                            <span style="display:none"> | </span>
+                            <a href="#" class="item comment-claim">Comment</a>
                             {% if src_claim.comment_number != 0 %}
                                 <a href="#" class="item comment-nugget-number">({{ src_claim.comment_number }})</a>
                             {% endif %}

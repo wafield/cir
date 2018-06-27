@@ -513,6 +513,7 @@ class ClaimReference(models.Model):
         ('nugget', 'Is nugget to slot.'),
         ('stmt', 'Referenced by statement slot'),
         ('claim', 'Is claim to slot.'),
+        ('nug2claim', 'Is Nugget to Claim'),
     )
     refer_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     from_claim = models.ForeignKey(Claim, related_name='newer_versions',

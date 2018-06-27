@@ -12,113 +12,137 @@
 {% block delaylib %}
 {% endblock %}
 {% block extracss %}
-	{% compressed_css 'cir_forum' %}
+    {% compressed_css 'cir_forum' %}
 {% endblock %}
 
 {% block header %}
-	{% include 'header/forum_header.html' %}
+    {% include 'header/forum_header.html' %}
 {% endblock %}
 
 {% block body %}
 
-<div id="popup-notification" class="ui message hidden"></div>
-	{% if load_error %}
-		{% if load_error == '404' %}
-<article class="ui two column centered grid">
-	<div class="column" style="top:50px">
-		<div class="ui error message">
-			<div class="header">Forum does not exist; did you enter the correct address?</div>
-			<p>Click <a href="/">here</a> to return to homepage.</p>
-		</div>
-	</div>
-</article>
-		{% elif load_error == '403' %}
-<article class="ui two column centered grid">
-	<div class="column" style="top:50px">
-		<div class="ui error message">
-			<div class="header">Sorry, this is a private forum</div>
-			<ul class="list">
-				<li>This forum is only accessible to specific users.</li>
-				<li>Click <a href="/">here</a> to return to homepage.</li>
-			</ul>
-		</div>
-	</div>
-</article>
-		{% endif %}
-	{% else %}
+    <div id="popup-notification" class="ui message hidden"></div>
+    {% if load_error %}
+        {% if load_error == '404' %}
+            <article class="ui two column centered grid">
+                <div class="column" style="top:50px">
+                    <div class="ui error message">
+                        <div class="header">Forum does not exist; did you enter
+                            the correct address?
+                        </div>
+                        <p>Click <a href="/">here</a> to return to homepage.</p>
+                    </div>
+                </div>
+            </article>
+        {% elif load_error == '403' %}
+            <article class="ui two column centered grid">
+                <div class="column" style="top:50px">
+                    <div class="ui error message">
+                        <div class="header">Sorry, this is a private forum</div>
+                        <ul class="list">
+                            <li>This forum is only accessible to specific
+                                users.
+                            </li>
+                            <li>Click <a href="/">here</a> to return to
+                                homepage.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </article>
+        {% endif %}
+    {% else %}
 
-<!-- left panel -->
-<div id="slot-overview"
-     style="font-size:1.2em; position:fixed; top:40px; bottom:0; left:0; right:50%; margin:0 1em;">
-    <div style="height: 100%;">
-        <div class="ui top attached tabular menu">
-            <div class="item">
-                Nuggets Pane
-            </div>
-            <div class="right top attached tabular menu">
-                <a class="category-tab item active" data-id="finding">
-                    Key Findings
-                </a>
-                <a class="category-tab item" data-id="pro">
-                    Proponent
-                </a>
-                <a class="category-tab item" data-id="con">
-                    Opponent
-                </a>
-            </div>
-        </div>
-        <div id="statement-container"
-             class="ui bottom attached segment"
-             style="height: calc(100% - 47px); overflow:hidden; overflow-y:scroll; ">
-            <div class="ui active text loader"></div>
-        </div>
-    </div>
-</div>
-<!-- right panel -->
-<div id="slot-overview-claim"
-     style="font-size:1.2em; position:fixed; top:40px; bottom:0; left:50%; right:0; margin:0 1em;">
-    <div style="height: 100%;">
-        <div class="ui top attached tabular menu">
-            <div class="item">
-                Claims Pane
-            </div>
-            <div class="item">
-                <a href="#" class="ui primary button" id="add-new-claim">Create</a>
-            </div>
-            <div class="right top attached tabular menu">
-                <a class="category-tab item active" data-id="finding">
-                    Key Findings
-                </a>
-                <a class="category-tab item" data-id="pro">
-                    Proponent
-                </a>
-                <a class="category-tab item" data-id="con">
-                    Opponent
-                </a>
+        <!-- left panel -->
+        <div id="slot-overview"
+             style="font-size:1.2em; position:fixed; top:40px; bottom:0; left:0; right:50%; margin:0 1em;">
+            <div style="height: 100%;">
+                <div class="ui top attached tabular menu">
+                    <div class="item">
+                        Nuggets Pane
+                    </div>
+                    <div class="right top attached tabular menu">
+                        <a class="category-tab item active" data-id="finding">
+                            Key Findings
+                        </a>
+                        <a class="category-tab item" data-id="pro">
+                            Proponent
+                        </a>
+                        <a class="category-tab item" data-id="con">
+                            Opponent
+                        </a>
+                    </div>
+                </div>
+                <div id="statement-container"
+                     class="ui bottom attached segment"
+                     style="height: calc(100% - 47px); overflow:hidden; overflow-y:scroll; ">
+                    <div class="ui active text loader"></div>
+                </div>
             </div>
         </div>
-        <div id="feng-claim-panel"
-             class="ui bottom attached segment"
-             style="height: calc(100% - 47px); overflow:hidden; overflow-y:scroll; ">
-            <a href="#" id="claim-list-back" style="display:none;"><i
-                    class="icon angle left"></i>back to full list</a>
-            <div id="claim-detail"
-                 style="display:none; margin-top:0;"></div>
-            <div id="claim-list"
-                 style="border-radius:0; margin-top:0;"></div>
+        <!-- right panel -->
+        <div id="slot-overview-claim"
+             style="font-size:1.2em; position:fixed; top:40px; bottom:0; left:50%; right:0; margin:0 1em;">
+            <div style="height: 100%;">
+                <div class="ui top attached tabular menu">
+                    <div class="item">
+                        Claims Pane
+                    </div>
+                    <div class="right top attached tabular menu">
+                        <a class="category-tab item active" data-id="finding">
+                            Key Findings
+                        </a>
+                        <a class="category-tab item" data-id="pro">
+                            Proponent
+                        </a>
+                        <a class="category-tab item" data-id="con">
+                            Opponent
+                        </a>
+                    </div>
+                </div>
+                <div id="feng-claim-panel"
+                     class="ui bottom attached segment"
+                     style="height: calc(100% - 47px); overflow:hidden; overflow-y:scroll; ">
+                    <a href="#" id="claim-list-back" style="display:none;"><i
+                            class="icon angle left"></i>back to full list</a>
+                    <div id="claim-detail"
+                         style="display:none; margin-top:0;"></div>
+                    <div id="claim-list"
+                         style="border-radius:0; margin-top:0;"></div>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
+        <div class="ui modal" id="claim-from-nugget-modal">
+            <i class="close icon"></i>
+            <div class="content">
+                <div class="description">
+                    <div class="ui header">Please create a claim.</div>
 
-{% if role != 'visitor' %}
-	{% include 'chatter.html' %}
-{% endif %}
-	{% endif %}
+                    <div class="nugget-content"></div>
+                    <div class="ui form">
+                        <textarea name="claim-from-nugget"
+                                  id="claim-from-nugget"
+                                  rows="3"></textarea>
+                    </div>
 
-{% include 'phase1/nugget_comment.html' %}
+                </div>
+            </div>
+            <div class="actions">
+                <div class="ui primary approve right button">
+                    Submit
+                </div>
+            </div>
+        </div>
 
-{% include 'qa/qa-wrapper.html' %}
+        {% if role != 'visitor' %}
+            {% include 'chatter.html' %}
+        {% endif %}
+    {% endif %}
+
+    {% include 'phase1/nugget_comment.html' %}
+
+    {% include 'qa/qa-wrapper.html' %}
 
 {% endblock %}
 

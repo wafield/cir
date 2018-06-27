@@ -128,50 +128,6 @@ def api_load_all_documents(request):
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
-def api_get_toc(request):
-    response = {}
-    context = {}
-    # retrieve docs not in any folder
-    context['root_docs'] = []
-    root_docs = Doc.objects.filter(forum_id=request.session['forum_id'],
-                                   folder__isnull=True).order_by("order")
-    for doc in root_docs:
-        m_doc = {}
-        m_doc['name'] = doc.title
-        m_doc['id'] = doc.id
-        m_doc['content'] = []
-        for section in doc.sections.all():
-            m_sec = {}
-            m_sec["name"] = section.title
-            m_sec["id"] = section.id
-            m_doc['content'].append(m_sec)
-        m_doc['content'].sort(key=lambda x: x["id"])
-        context['root_docs'].append(m_doc)
-    # retrieve docs in a folder
-    folders = EntryCategory.objects.filter(forum_id=request.session['forum_id'],
-                                           category_type='doc')
-    context['folders'] = []
-    for folder in folders:
-        m_folder = {}
-        m_folder['name'] = folder.name
-        m_folder['content'] = []
-        docs = Doc.objects.filter(folder=folder)
-        for doc in docs:
-            m_doc = {}
-            m_doc['name'] = doc.title
-            m_doc['id'] = doc.id
-            m_doc['content'] = []
-            for section in doc.sections.all():
-                m_sec = {}
-                m_sec["name"] = section.title
-                m_sec["id"] = section.id
-                m_doc['content'].append(m_sec)
-            m_doc['content'].sort(key=lambda x: x["id"])
-            m_folder['content'].append(m_doc)
-        context['folders'].append(m_folder)
-    response['document_toc'] = render_to_string("document-toc.html", context)
-    return HttpResponse(json.dumps(response), mimetype='application/json')
-
 
 def api_get_doc_by_hl_id(request):
     response = {}

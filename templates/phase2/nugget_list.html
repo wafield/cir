@@ -1,12 +1,11 @@
 {% for slot_info in categories %}
-    <div class="ui vertical segment statement-entry"
+    <div class="ui vertical segment"
          data-id="{{ slot_info.id }}">
         <h3>Question: {{ slot_info.slot_title }}</h3>
         <button class="show-workspace" data-id="{{ slot_info.id }}"
                 style="display:none;">
             open workspace
         </button>
-
 
         {% if slot_info.adopted_versions %}
             <div class="ui stacked segments" style="margin-top:1rem;">
@@ -24,9 +23,12 @@
             {% if slot_info.nuggets %}
 
                 {% for src_claim in slot_info.nuggets %}
-                    <div class="src_claim item" data-id="{{ src_claim.id }}"
+                    <div class="src_claim item" style="cursor:move;" draggable="true"
+                         ondragstart="onDragStart(event)" data-id="{{ src_claim.id }}"
                          style="padding: 1em 0; position:relative;">
-                        [Nugget] {{ src_claim.content | safe | truncatechars:300 }}
+                        <div class="content">
+                            [Nugget] {{ src_claim.content | safe }}
+                        </div>
                         <div class="description action-bar"
                              style="margin-top: 10px; color:rgba(0,0,0,.4);">
                             <a class="ui basic image label avatar1"
@@ -54,11 +56,6 @@
                                     <span> | </span>
                                     <a href="#" class="item delete-nugget">Delete</a>
                                 {% endif %}
-                                <a href="#"
-                                   class="item use-nugget">Use
-                                    <i class="move-claim-handle move icon"></i>
-                                </a>
-
                             </div>
                         </div>
                     </div>
