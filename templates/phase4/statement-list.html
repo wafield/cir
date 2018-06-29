@@ -1,0 +1,45 @@
+{% for slot_info in categories %}
+  <div class="ui vertical segment" data-id="{{ slot_info.id }}">
+    <h3 class="statement-question-title">
+      Question: {{ slot_info.slot_title }}</h3>
+    <button class="show-workspace" data-id="{{ slot_info.id }}"
+            style="display:none;">
+      open workspace
+    </button>
+
+    <div class="ui divided list" style="padding: 0 2em;">
+      {% if slot_info.statements %}
+
+          {% for src_claim in slot_info.statements %}
+            <div class="src_claim item" data-id="{{ src_claim.id }}"
+                 style="padding: 1em 0; position:relative;">
+              <div class="content">
+                [Statement] {{ src_claim.content | safe }}
+              </div>
+              <div class="description action-bar"
+                   style="margin-top: 10px; color:rgba(0,0,0,.4);">
+                <a class="ui basic image label avatar1"
+                   data-id="{{ src_claim.author_id }}"
+                   data-content="{{ src_claim.author_intro }}" data-inverted="">
+                  <img
+                      src="{{ STATIC_URL }}/static/pictures/{{ src_claim.author_id }}.png"
+                      onerror="this.src = '{{ STATIC_URL }}/static/pictures/default-avatar.png';">
+                  {{ src_claim.author_name }}
+                </a>
+                {{ src_claim.created_at_pretty }}
+                <div class="actions" style="margin-top:5px;float:right;">
+                  <a href="#" class="item comment-statement">Comment</a>
+                  {% if src_claim.comment_number != 0 %}
+                    <a href="#"
+                       class="item comment-nugget-number">({{ src_claim.comment_number }})</a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+      {% else %}
+        (No statement under this question yet.)
+      {% endif %}
+    </div>
+  </div>
+{% endfor %}

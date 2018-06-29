@@ -1,27 +1,129 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load compressed %}
 {% block extralib %}
-	<script>
-		require([
-			'phase4/claim',
-		]);
-	</script>
+  <script>
+    require([
+      'phase4/layout',
+    ]);
+  </script>
 {% endblock %}
 {% block extracss %}
-	{% compressed_css 'cir_forum' %}
+  {% compressed_css 'cir_forum' %}
 {% endblock %}
 {% block header %}
-	{% include 'header/forum_header.html' %}
+  {% include 'header/forum_header.html' %}
 {% endblock %}
 
 {% block body %}
+  <!-- left panel -->
+  <div id="claim-overview"
+       style="font-size:1.2em; position:fixed; top:40px; bottom:0; left:0; right:50%; margin:0 1em;">
+    <div style="height: 100%;">
+      <div class="ui top attached tabular menu">
+        <div class="item">
+          Claims Pane
+        </div>
+        <div class="right top attached tabular menu">
+          <a class="category-tab item active" data-id="finding">
+            Key Findings
+          </a>
+          <a class="category-tab item" data-id="pro">
+            Proponent
+          </a>
+          <a class="category-tab item" data-id="con">
+            Opponent
+          </a>
+        </div>
+      </div>
+      <div id="claim-list-container"
+           class="ui bottom attached segment"
+           style="height: calc(100% - 47px); overflow:hidden; overflow-y:auto;">
+        <div class="ui active text loader"></div>
+      </div>
+    </div>
+  </div>
+  <!-- right panel -->
+  <div id="statement-overview"
+       style="font-size:1.2em; position:fixed; top:40px; bottom:0; left:50%; right:0; margin:0 1em;">
+    <div style="height: 100%;">
+      <div class="ui top attached tabular menu">
+        <div class="item">
+          Statement Pane
+        </div>
+        <div class="right top attached tabular menu">
+          <a class="category-tab item active" data-id="finding">
+            Key Findings
+          </a>
+          <a class="category-tab item" data-id="pro">
+            Proponent
+          </a>
+          <a class="category-tab item" data-id="con">
+            Opponent
+          </a>
+        </div>
+      </div>
+      <div id="statement-list-container"
+           class="ui bottom attached segment"
+           style="height: calc(100% - 47px); overflow:hidden; overflow-y:auto; ">
+        <div id="statement-detail"
+             style="display:none; margin-top:0;"></div>
+        <div id="statement-list"
+             style="border-radius:0; margin-top:0;"></div>
+      </div>
+    </div>
+  </div>
+  <div class="ui modal" id="statement-from-claim-modal">
+    <i class="close icon"></i>
+    <div class="content">
+      <div class="description">
+        <div class="ui header">Please create a statement.</div>
 
+        <div class="claim-content"></div>
+        <div class="ui form">
+                        <textarea name="statement-from-claim"
+                                  id="statement-from-claim"
+                                  rows="3"></textarea>
+        </div>
 
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui primary approve right button">
+        Submit
+      </div>
+    </div>
+  </div>
 
-{% if role != 'visitor' %}
-	{% include 'chatter.html' %}
-{% endif %}
+  <div class="ui modal" id="statement-merge-claim-modal">
+    <i class="close icon"></i>
+    <div class="content">
+      <div class="description">
+        <div class="ui header">Please edit the statement.</div>
 
-{% include 'qa/qa-wrapper.html' %}
+        <b>Current statement content:</b>
+        <div class="statement-content"></div>
+        <b>Dragged claim:</b>
+        <div class="claim-content"></div>
+        <div class="ui form">
+                        <textarea name="statement-claim-merge"
+                                  id="statement-claim-merge"
+                                  rows="3"></textarea>
+        </div>
+
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui primary approve right button">
+        Submit
+      </div>
+    </div>
+  </div>
+
+  {% if role != 'visitor' %}
+    {% include 'chatter.html' %}
+  {% endif %}
+
+  {% include 'qa/qa-wrapper.html' %}
 
 {% endblock %}

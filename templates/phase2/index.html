@@ -9,8 +9,6 @@
         ]);
     </script>
 {% endblock %}
-{% block delaylib %}
-{% endblock %}
 {% block extracss %}
     {% compressed_css 'cir_forum' %}
 {% endblock %}
@@ -75,7 +73,7 @@
                 </div>
                 <div id="statement-container"
                      class="ui bottom attached segment"
-                     style="height: calc(100% - 47px); overflow:hidden; overflow-y:scroll; ">
+                     style="height: calc(100% - 47px); overflow:hidden; overflow-y:auto; ">
                     <div class="ui active text loader"></div>
                 </div>
             </div>
@@ -102,7 +100,7 @@
                 </div>
                 <div id="feng-claim-panel"
                      class="ui bottom attached segment"
-                     style="height: calc(100% - 47px); overflow:hidden; overflow-y:scroll; ">
+                     style="height: calc(100% - 47px); overflow:hidden; overflow-y:auto; ">
                     <a href="#" id="claim-list-back" style="display:none;"><i
                             class="icon angle left"></i>back to full list</a>
                     <div id="claim-detail"

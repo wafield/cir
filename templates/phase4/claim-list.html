@@ -1,7 +1,7 @@
 {% for slot_info in categories %}
   <div class="ui vertical segment statement-entry" data-id="{{ slot_info.id }}"
        style="position:relative">
-    <h3 class="statement-question-title">
+    <h3 class="claim-question-title">
       Question: {{ slot_info.slot_title }}</h3>
     <button class="show-workspace" data-id="{{ slot_info.id }}"
             style="display:none;">
@@ -10,10 +10,10 @@
 
     <div class="ui divided list" style="padding: 0 2em;">
       {% if slot_info.claims %}
-
         {% for src_claim in slot_info.claims %}
-          <div class="src_claim item" data-id="{{ src_claim.id }}"
-               style="padding: 1em 0; position:relative;">
+          <div class="src_claim item" data-id="{{ src_claim.id }}" draggable="true"
+               ondragstart="onDragStart(event)"
+               style="padding: 1em 0; position:relative; cursor:move;">
             <div class="content">
               [Claim] {{ src_claim.content | safe }}
             </div>

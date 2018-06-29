@@ -400,10 +400,10 @@ def get_nugget_list(request):
   slots = Claim.objects.filter(forum=forum, is_deleted=False,
                                stmt_order__isnull=False)
   for category in category_list:
-    slots = slots.filter(claim_category=category).order_by('stmt_order')
-
     context['categories'][category] = [slot.getAttrSlot(forum) for slot in
-                                       slots]
+                                       slots.filter(
+                                         claim_category=category).order_by(
+                                         'stmt_order')]
     response['slots_cnt'][category] += len(context['categories'][category])
     # Put together a list of [nugget_id, list_of_claim_id] to indicate which
     # nugget has been used in which claim.
