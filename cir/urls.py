@@ -115,23 +115,16 @@ urlpatterns = patterns(
   url(r'^phase2/get_claim_list/$', phase2.get_claim_list),
   url(r'^phase2/get_nugget_list/$',
       phase2.get_nugget_list),
-  # url(r'^phase2/get_theme_list/$', phase2.get_theme_list),
-  # url(r'^phase2/get_author_list/$', phase2.get_author_list),
   url(r'^phase2/put_claim/$', phase2.put_claim),
-  url(r'^phase2/get_claim_activity/$',
-      phase2.get_claim_activity),
   url(r'^phase2/add_nugget_to_claim/$',
       phase2.add_nugget_to_claim),
-  url(r'^phase2/remove_nugget_from_claim/$',
-      phase2.remove_nugget_from_claim),
-  url(r'^phase2/suggest_claim/$', phase2.suggest_claim),
-  url(r'^phase2/adopt_claim/$', phase2.adopt_claim),
-  url(r'^phase2/add_comment_to_claim/$',
-      phase2.add_comment_to_claim),
   url(r'^phase2/get_claim_comment_list/$',
       phase2.get_claim_comment_list),
   url(r'^phase2/put_claim_comment/$',
       phase2.put_claim_comment),
+
+
+
 
   url(r'^phase4/get_claim_list/$', phase4.get_claim_list),
   url(r'^phase4/get_statement_list/$',
