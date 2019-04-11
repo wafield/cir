@@ -21,16 +21,13 @@
         {% if slot_info.nuggets %}
 
             {% for src_claim in slot_info.nuggets %}
-                <div class="src_claim item" data-id="{{ src_claim.id }}" style="padding: 1em 0; position:relative;">
-                    [Nugget] {{ src_claim.content | safe | truncatechars:300 }}
-                    <div class="description action-bar" style="margin-top: 10px; color:rgba(0,0,0,.4);">
-                        <a class="ui basic image label avatar1" data-id="{{ src_claim.author_id }}"
-                           data-content="{{ src_claim.author_intro }}" data-inverted="">
-                            <img src="{{ STATIC_URL }}/static/pictures/{{ src_claim.author_id }}.png"
-                                 onerror="this.src = '{{ STATIC_URL }}/static/pictures/default-avatar.png';">
-                            {{ src_claim.author_name }}
-                        </a>
-                        {{ src_claim.created_at_pretty }}
+                <div class="src_claim item" data-id="{{ src_claim.id }}" style="padding:10px 0; position:relative;">
+                  {{ src_claim.content | safe | truncatechars:300 }}
+                  <div class="ui small label">N{{ src_claim.id }}</div>
+                    <div class="description action-bar"
+                         style="margin-top: 10px; color:rgba(0,0,0,.4);">
+                      <b>{{ src_claim.author_name }}</b>
+                      on {{ src_claim.created_at_pretty }}
                         <div class="actions" style="margin-top:5px;float:right;">
                             <a href="#" class="item source-nugget">Context</a>
                             <span> | </span>

@@ -390,33 +390,26 @@ def get_nugget_list(request):
   forum = Forum.objects.get(id=request.session['forum_id'])
   response = {}
   context = {}
-  if request.REQUEST.get('category'):
-    category_list = [request.REQUEST['category']]
-  else:
-    category_list = ['finding', 'pro', 'con']
-  context['categories'] = {}
-  response['slots_cnt'] = {'finding': 0, 'pro': 0, 'con': 0}
-  response['highlight2claims'] = {}
+  category_list = ['finding', 'pro', 'con']
+  nugget_claim_usage = {}
+  context['categories'] = {'finding': [], 'pro': [], 'con': []}
   slots = Claim.objects.filter(forum=forum, is_deleted=False,
                                stmt_order__isnull=False)
   for category in category_list:
-    context['categories'][category] = [slot.getAttrSlot(forum) for slot in
-                                       slots.filter(
-                                         claim_category=category).order_by(
-                                         'stmt_order')]
-    response['slots_cnt'][category] += len(context['categories'][category])
-    # Put together a list of [nugget_id, list_of_claim_id] to indicate which
-    # nugget has been used in which claim.
-    for slot_info in context['categories'][category]:
+    for slot in slots.filter(claim_category=category).order_by('stmt_order'):
+      slot_info = slot.getAttrSlot(forum)
       for nugget_info in slot_info['nuggets']:
-        for ref in ClaimReference.objects.filter(refer_type='stmt',
+        target_claims = ClaimReference.objects.filter(refer_type='nug2claim',
                                                  from_claim_id=
-                                                 nugget_info['id']):
-          if nugget_info['id'] not in response['highlight2claims']:
-            response['highlight2claims'][nugget_info['id']] = []
-          response['highlight2claims'][nugget_info['id']].append(
-            ref.to_claim.id)
+                                                 nugget_info['id'])
+        nugget_info['used_in_claims'] = []
+        nugget_claim_usage[nugget_info['id']] = []
+        for ref in target_claims:
+          nugget_info['used_in_claims'].append(ref.to_claim.id)
+          nugget_claim_usage[nugget_info['id']].append(ref.to_claim.id)
+      context['categories'][category].append(slot_info)
 
+  response['nugget_claim_usage'] = nugget_claim_usage
   response['html'] = render_to_string('phase2/nuggets.html', context)
   return HttpResponse(json.dumps(response), mimetype='application/json')
 
@@ -612,41 +605,7 @@ def get_claim_list(request):
                                          'stmt_order')]
     response['slots_cnt'][category] += len(context['categories'][category])
 
-  # claims = Claim.objects.filter(forum=forum, is_deleted=False, published=True, stmt_order__isnull=True)
-  # context['claims'] = []
-  # for claim in claims:
-  #     item = {}
-  #     item['date'] = utils.pretty_date(claim.updated_at)
-  #     item['created_at'] = utils.pretty_date(claim.created_at)
-  #     item['created_at_used_for_sort'] = claim.created_at
-  #     print "claim_id = ", claim.id
-  #     if (ClaimVersion.objects.filter(claim_id=claim.id, is_adopted=True).count() > 0):
-  #         item['content'] = unicode(ClaimVersion.objects.filter(claim_id=claim.id, is_adopted=True)[0])
-  #         item['content'] = item['content'] if (not item['content'] == "") else "(The claim is under construction.)"
-  #     else:
-  #         item['content'] = "(The claim is under construction.)"
-  #     item['id'] = claim.id
-  #     item['author_name'] = claim.author.first_name + " " + claim.author.last_name
-  #     item["author_intro"] = UserInfo.objects.get(user=claim.author).description
-  #     item["author_id"] = claim.author.id
-  #     item['is_author'] = (request.user == claim.author)
-  #     arr = []
-  #     for highlight in claim.source_highlights.all():
-  #         arr.append(str(highlight.id))
-  #     item['highlight_ids'] = ",".join(arr)
-  #     item['themes'] = []
-  #     for claimAndTheme in ClaimAndTheme.objects.filter(claim=claim):
-  #         theme = claimAndTheme.theme
-  #         if theme not in item['themes']:
-  #             item['themes'].append(theme)
-  #     context['claims'].append(item)
-  # context['claims'].sort(key=lambda x: x["created_at_used_for_sort"], reverse=True)
-  # random order nugget list
-  # random.shuffle(items)
-
-  response['workbench_claims'] = render_to_string('phase2/statement.html',
-                                                  context)
-  # response['workbench_claims'] = render_to_string("phase2/claim_list.html", context)
+  response['workbench_claims'] = render_to_string('phase2/statement.html', context)
   return HttpResponse(json.dumps(response), mimetype='application/json')
 
 

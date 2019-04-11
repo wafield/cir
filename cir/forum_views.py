@@ -107,12 +107,13 @@ def enter_forum(request, forum_url, phase_name):  # access /forum_name
 
   complexPhase = ComplexPhase.objects.filter(forum=forum, name=phase_name)[0]
 
+  print phase_name
   index_html = ''
   if phase_name == 'free_discuss':
     index_html = 'phase0/index.html'
-  elif phase_name == 'nugget':
+  elif phase_name == 'nugget':  # "nugget extraction phase"
     index_html = 'phase1/index.html'
-  elif phase_name == 'extract':
+  elif phase_name == 'extract':  # "claim making phase"
     index_html = 'phase2/index.html'
   elif phase_name == 'categorize':
     index_html = 'phase3/index.html'
@@ -205,7 +206,6 @@ def _get_phases(forum, selected_phase):
     else:
       phase_info['status'] = 'disabled'
     results['phases'].append(phase_info)
-  print results
   return results
 
 

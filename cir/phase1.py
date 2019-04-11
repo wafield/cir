@@ -411,7 +411,6 @@ def get_nugget_list(request):
   else:
     category_list = ['finding', 'pro', 'con']
   context['categories'] = {}
-  response['slots_cnt'] = {'finding': 0, 'pro': 0, 'con': 0}
   slots = Claim.objects.filter(forum=forum, is_deleted=False,
                                stmt_order__isnull=False)
   for category in category_list:
@@ -419,7 +418,6 @@ def get_nugget_list(request):
                                        slots.filter(
                                          claim_category=category).order_by(
                                          'stmt_order')]
-    response['slots_cnt'][category] += len(context['categories'][category])
   response['html'] = render_to_string('phase1/statement.html', context)
   return HttpResponse(json.dumps(response), mimetype='application/json')
 

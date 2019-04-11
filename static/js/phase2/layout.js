@@ -11,6 +11,7 @@ define([
   QA.updateQuestionList();
 
   var module = {};
+  module.nugget_claim_usage = [];
 
   module.get_nugget_list = function() {
     return $.ajax({
@@ -19,14 +20,7 @@ define([
       data: {},
       success: function(xhr) {
         $('#statement-container').html(xhr.html);
-        // var category = sessionStorage.getItem("category");
-        // $('.category-tab[data-id=' + category + ']').click();
-
-        for (highlight_id in xhr.highlight2claims) {
-          var nugget = $("#workbench-nugget-list .workbench-nugget[data-hl-id=" + highlight_id + "]");
-          nugget.attr("claim-ids", xhr.highlight2claims[highlight_id]);
-          nugget.find(".use-nugget-num").text("(" + nugget.attr("claim-ids").split(",").length + ")");
-        }
+        module.nugget_claim_usage = xhr.nugget_claim_usage;
       },
       error: function(xhr) {
         $('#draft-stmt').css('opacity', '1.0');
@@ -170,56 +164,7 @@ define([
 // 						Utils.notify('error', xhr.responseText);
 // 					}
 // 				}
-// 			});		
-// 		}).on("click", ".source-nugget", function(e) {
-// 			var container = $(this).closest(".workbench-nugget");
-// 			var hl_id = container.attr('data-hl-id');
-// 			$.ajax({
-// 				url: '/workbench/api_get_doc_by_hl_id/',
-// 				type: 'post',
-// 				data: {
-// 					'hl_id': hl_id,
-// 				},
-// 				success: function(xhr) {
-// 					// $("#workbench-document-modal").animate({scrollTop: 0}, 0);
-// 					// $(".section-content[data-id=" + xhr.highlight.context_id + "] .tk[data-id=" + xhr.highlight.start + "]")
-
-// 					// var $highlight = $($(".section-content[data-id=" + xhr.highlight.context_id + "] .tk[data-id=" + xhr.highlight.start + "]")[0]);
-// 					// var tmp1 = $highlight.position().top; 
-// 					// var tmp2 = $highlight.offsetParent().position().top;
-// 					// var tmp = tmp1 + tmp2 + 300;
-// 					// $(".modals").animate({scrollTop: tmp}, 0);
-// 					// $highlight.css("background-color", "yellow");
-
-// 					$("#document-container").html(xhr.workbench_document);
-// 					$("#document-container-modal").modal("show");
-// 					$(".modals").animate({scrollTop: 0}, 0);
-
-// 					setTimeout(function(){
-// 						var $highlight = $($("#document-container-modal .section-content[data-id=" + xhr.highlight.context_id + "] .tk[data-id=" + xhr.highlight.start + "]")[0]);
-// 						$('.modals').animate({scrollTop: $highlight.offset().top - 200}, 1000);
-
-// 						// var tmp1 = $highlight.position().top; 
-// 						// var tmp2 = $highlight.offsetParent().position().top;
-// 						// var tmp = tmp1 + tmp2 + 400;
-// 						// console.log("tmp1 = " + tmp1);
-// 						// console.log("tmp2 = " + tmp2);
-// 						// $(".modals").animate({scrollTop: tmp}, 0);
-
-// 						// loop over all words in the highlight
-// 						for (var i = xhr.highlight.start; i <= xhr.highlight.end; i++) {
-// 							var $token = $($("#document-container-modal .section-content[data-id=" + xhr.highlight.context_id + "] .tk[data-id=" + i + "]")[0]);
-// 							$token.css("background-color", "yellow");
-// 						}
-// 					}, 500);
-
-// 				},
-// 				error: function(xhr) {
-// 					if (xhr.status == 403) {
-// 						Utils.notify('error', xhr.responseText);
-// 					}
-// 				}
-// 			});						
+// 			});
 // 		});
 
 // 		$("body").on("click", "#clear-claim", function(e) {
