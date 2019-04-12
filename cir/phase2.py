@@ -1,10 +1,18 @@
 import json
+import re
+import nltk
 
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.utils import timezone
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import PorterStemmer
 
 from cir.models import *
+
+stop_words = set(stopwords.words('english'))
+ps = PorterStemmer()
 
 def put_claim(request):
   """
@@ -79,7 +87,7 @@ def get_nugget_list(request):
   response = {}
   context = {}
   category_list = ['finding', 'pro', 'con']
-  nugget_claim_usage = {}
+  nuggets_metadata = {}
   context['categories'] = {'finding': [], 'pro': [], 'con': []}
   slots = Claim.objects.filter(forum=forum, is_deleted=False,
                                stmt_order__isnull=False)
@@ -91,13 +99,26 @@ def get_nugget_list(request):
                                                  from_claim_id=
                                                  nugget_info['id'])
         nugget_info['used_in_claims'] = []
-        nugget_claim_usage[nugget_info['id']] = []
         for ref in target_claims:
           nugget_info['used_in_claims'].append(ref.to_claim.id)
-          nugget_claim_usage[nugget_info['id']].append(ref.to_claim.id)
+        words = stem_words(remove_stop_words(tokenize(nugget_info['content'])))
+        highlight = HighlightClaim.objects.get(claim_id=nugget_info['id']).highlight
+        src_doc = highlight.context.docsection
+
+        nuggets_metadata[nugget_info['id']] = {
+          'cat': category,
+          'slot_question': slot.title,
+          'words': words,
+          'used_in_claims': nugget_info['used_in_claims'],
+          'author_id': nugget_info['author_id'],
+          'docsrc_author': get_doc_author(src_doc.title),
+          'docsrc_title': src_doc.title,
+          'docsrc_cat': src_doc.getCat(),
+          'src_offset': highlight.start_pos,
+        }
       context['categories'][category].append(slot_info)
 
-  response['nugget_claim_usage'] = nugget_claim_usage
+  response['nuggets_metadata'] = nuggets_metadata
   response['html'] = render_to_string('phase2/nuggets.html', context)
   return HttpResponse(json.dumps(response), mimetype='application/json')
 
@@ -130,20 +151,32 @@ def get_claim_list(request):
   forum = Forum.objects.get(id=request.session['forum_id'])
   response = {}
   context = {}
+  claims_metadata = {}
 
   category_list = ['finding', 'pro', 'con']
   context['categories'] = {}
-  response['slots_cnt'] = {'finding': 0, 'pro': 0, 'con': 0}
   slots = Claim.objects.filter(forum=forum, is_deleted=False,
                                stmt_order__isnull=False)
   for category in category_list:
-    context['categories'][category] = [slot.getAttrSlot(forum) for slot in
-                                       slots.filter(
-                                         claim_category=category).order_by(
-                                         'stmt_order')]
-    response['slots_cnt'][category] += len(context['categories'][category])
+    context['categories'][category] = []
+    slots_cat = slots.filter(claim_category=category).order_by('stmt_order')
+    for slot in slots_cat:
+      slot_info = slot.getAttrSlot(forum)
+      for claim in slot_info['claims']:
+        words = stem_words(remove_stop_words(tokenize(claim['content'])))
+        src_nuggets = []
+        for ref in ClaimReference.objects.filter(refer_type='nug2claim', to_claim_id=claim['id']):
+          src_nuggets.append(ref.from_claim.id)
+        claims_metadata[claim['id']] = {
+          'cat': category,
+          'words': words,
+          'src_nuggets': src_nuggets,
+          'author_id': claim['author_id'],
+        }
+      context['categories'][category].append(slot_info)
 
-  response['workbench_claims'] = render_to_string('phase2/statement.html', context)
+  response['claims_metadata'] = claims_metadata
+  response['html'] = render_to_string('phase2/statement.html', context)
   return HttpResponse(json.dumps(response), mimetype='application/json')
 
 
@@ -177,3 +210,27 @@ def put_claim_comment(request):
   newClaimComment.save()
   return HttpResponse(json.dumps(response), mimetype='application/json')
 
+
+def remove_stop_words(words):
+  return [w.lower() for w in words if not w.lower() in stop_words]
+
+
+def stem_words(words):
+  return [ps.stem(w) for w in words]
+
+
+def tokenize(sent):
+  return word_tokenize(sent)
+
+
+def get_doc_author(title):
+  authors = [
+    'Scot Chambers',
+    'Dwight Miller',
+    'Susan Venegoni',
+    'Ron Madrid'
+  ]
+  for author in authors:
+    if author in title:
+      return author
+  return 'Unknown'

@@ -927,7 +927,7 @@ define([
     $("body").on("click", ".source-nugget", function(e) {
       var claim_id = $(this).closest(".src_claim").attr("data-id");
       $.ajax({
-        url: '/workbench/api_get_doc_by_hl_id/',
+        url: '/phase1/api_get_doc_by_hl_id/',
         type: 'post',
         data: {
           'claim_id': claim_id,

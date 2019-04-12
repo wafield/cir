@@ -218,6 +218,11 @@ class DocSection(Entry):
   def __str__(self):  # used for admin site
     return str(self.id) + ' ' + self.title
 
+  def getCat(self):
+    if self.category:
+      return self.category.name
+    return ''
+
   def getAttrAdmin(self):
     attr = {}
     attr['id'] = self.id
@@ -815,8 +820,8 @@ class ChatMessage(models.Model):
 
 
 class HighlightClaim(models.Model):
-  claim = models.ForeignKey(Claim, on_delete=models.CASCADE)
-  highlight = models.ForeignKey(Highlight, on_delete=models.CASCADE)
+  claim = models.ForeignKey(Claim, related_name='src_highlight', on_delete=models.CASCADE)
+  highlight = models.ForeignKey(Highlight, related_name='dest_claim', on_delete=models.CASCADE)
 
 
 class ClaimAndTheme(models.Model):

@@ -11,7 +11,8 @@ define([
   QA.updateQuestionList();
 
   var module = {};
-  module.nugget_claim_usage = [];
+  module.nuggets_metadata = [];
+  module.claims_metadata = [];
 
   module.get_nugget_list = function() {
     return $.ajax({
@@ -20,7 +21,8 @@ define([
       data: {},
       success: function(xhr) {
         $('#statement-container').html(xhr.html);
-        module.nugget_claim_usage = xhr.nugget_claim_usage;
+        // module.nugget_claim_usage = xhr.nugget_claim_usage;
+        module.nuggets_metadata = xhr.nuggets_metadata;
       },
       error: function(xhr) {
         $('#draft-stmt').css('opacity', '1.0');
@@ -36,7 +38,8 @@ define([
       url: '/phase2/get_claim_list/',
       type: 'post',
       success: function(xhr) {
-        $("#claim-list").html(xhr.workbench_claims);
+        $("#claim-list").html(xhr.html);
+        module.claims_metadata = xhr.claims_metadata;
         module.drag_drop_events();
       },
       error: function(xhr) {

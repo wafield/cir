@@ -133,24 +133,30 @@ def api_get_doc_by_hl_id(request):
   context = {}
   forum = Forum.objects.get(id=request.session['forum_id'])
   # retrieve docs in a folder
-  hl_id = request.REQUEST.get("hl_id")
-  hl = Highlight.objects.get(id=hl_id)
-  sec = DocSection.objects.get(id=hl.context.id)
-  doc = sec.doc
-  context['doc_name'] = doc.title
-  context['sections'] = []
-  context['doc_id'] = doc.id
-  ordered_sections = doc.sections.filter(order__isnull=False).order_by(
-    'order')
-  for section in ordered_sections:
-    context['sections'].append(section.getAttr(forum))
-  unordered_sections = doc.sections.filter(order__isnull=True).order_by(
-    'updated_at')
-  for section in unordered_sections:
-    context['sections'].append(section.getAttr(forum))
-  response['workbench_document'] = render_to_string("workbench-document.html",
-                                                    context)
-  response['doc_id'] = doc.id
+  # nugget claim one-one mapping
+  claim_id = request.REQUEST.get("claim_id")
+  if HighlightClaim.objects.filter(
+      claim=Claim.objects.get(id=claim_id)).count() > 0:
+    hl = HighlightClaim.objects.filter(claim=Claim.objects.get(id=claim_id))[
+      0].highlight
+    sec = DocSection.objects.get(id=hl.context.id)
+    doc = sec.doc
+    context['doc_name'] = doc.title
+    context['sections'] = []
+    context['doc_id'] = doc.id
+    ordered_sections = doc.sections.filter(order__isnull=False).order_by(
+      'order')
+    for section in ordered_sections:
+      context['sections'].append(section.getAttr(forum))
+    unordered_sections = doc.sections.filter(order__isnull=True).order_by(
+      'updated_at')
+    for section in unordered_sections:
+      context['sections'].append(section.getAttr(forum))
+    response['workbench_document'] = render_to_string("workbench-document.html",
+                                                      context)
+    response['doc_id'] = doc.id
+    response['highlight'] = hl.getAttr()
+    response['hl_id'] = hl.id
   return HttpResponse(json.dumps(response), mimetype='application/json')
 
 

@@ -79,8 +79,7 @@ urlpatterns = patterns(
       workbench_views.api_load_claim_list_partial),
   url(r'^workbench/api_get_doc_by_sec_id/$',
       workbench_views.api_get_doc_by_sec_id),
-  url(r'^workbench/api_get_doc_by_hl_id/$',
-      workbench_views.api_get_doc_by_hl_id),
+
   url(r'^workbench/api_get_doc_by_doc_id/$',
       workbench_views.api_get_doc_by_doc_id),
   url(r'^workbench/api_get_init_doc/$',
@@ -111,6 +110,8 @@ urlpatterns = patterns(
       phase1.change_nugget_theme),
   url(r'^phase1/get_statement_version/$',
       phase1.get_statement_version),
+  url(r'^phase1/api_get_doc_by_hl_id/$',
+      phase1.api_get_doc_by_hl_id),
 
   url(r'^phase2/get_claim_list/$', phase2.get_claim_list),
   url(r'^phase2/get_nugget_list/$',
