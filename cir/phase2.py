@@ -122,6 +122,7 @@ def get_nugget_list(request):
   response['html'] = render_to_string('phase2/nuggets.html', context)
   return HttpResponse(json.dumps(response), mimetype='application/json')
 
+
 def get_claim_comment_list(request):
   """
   Get thread of comments, given a claim.

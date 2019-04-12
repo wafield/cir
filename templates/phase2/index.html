@@ -98,71 +98,14 @@
                         </a>
                     </div>
                 </div>
-                <div id="feng-claim-panel"
+                <div id="claim-list"
                      class="ui bottom attached segment"
                      style="height: calc(100% - 47px); overflow:hidden; overflow-y:auto; ">
-                    <a href="#" id="claim-list-back" style="display:none;"><i
-                            class="icon angle left"></i>back to full list</a>
-                    <div id="claim-detail"
-                         style="display:none; margin-top:0;"></div>
-                    <div id="claim-list"
-                         style="border-radius:0; margin-top:0;"></div>
                 </div>
+              {% include 'phase2/claim_forms.html' %}
             </div>
         </div>
-
-        <div class="ui modal" id="claim-from-nugget-modal">
-            <i class="close icon"></i>
-            <div class="content">
-                <div class="description">
-                    <div class="ui header">Please create a claim.</div>
-
-                    <div class="nugget-content"></div>
-                    <div class="ui form">
-                        <textarea name="claim-from-nugget"
-                                  id="claim-from-nugget"
-                                  rows="3"></textarea>
-                    </div>
-
-                </div>
-            </div>
-            <div class="actions">
-                <div class="ui primary approve right button">
-                    Submit
-                </div>
-            </div>
-        </div>
-
-        <div class="ui modal" id="claim-merge-nugget-modal">
-            <i class="close icon"></i>
-            <div class="content">
-                <div class="description">
-                    <div class="ui header">Please edit the claim.</div>
-
-                    <b>Current claim content:</b>
-                    <div class="claim-content"></div>
-                    <b>Dragged nugget:</b>
-                    <div class="nugget-content"></div>
-                    <div class="ui form">
-                        <textarea name="claim-nugget-merge"
-                                  id="claim-nugget-merge"
-                                  rows="3"></textarea>
-                    </div>
-
-                </div>
-            </div>
-            <div class="actions">
-                <div class="ui primary approve right button">
-                    Submit
-                </div>
-            </div>
-        </div>
-
+      {% include 'qa/qa-wrapper.html' %}
     {% endif %}
-
-    {% include 'phase2/claim_comment.html' %}
-
-    {% include 'qa/qa-wrapper.html' %}
-
 {% endblock %}
 

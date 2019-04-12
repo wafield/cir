@@ -1,0 +1,74 @@
+<div id="claim-comment-modal" class="ui small modal">
+  <i class="close icon"></i>
+  <div class="content" id="claim-comment-highlight"
+       style="padding-bottom:0;"></div>
+  <div class="content" id="claim-comment-list">
+  </div>
+</div>
+
+<div class="ui modal" id="claim-from-nugget-modal">
+  <i class="close icon"></i>
+  <div class="content">
+    <div class="description">
+      <div class="ui header">Please create a claim.</div>
+      <div class="nugget-content"></div>
+      <div class="ui form">
+        <textarea name="claim-from-nugget"
+                  id="claim-from-nugget"
+                  rows="3"></textarea>
+      </div>
+
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui primary approve right button">
+      Submit
+    </div>
+  </div>
+</div>
+
+<div class="ui modal" id="claim-merge-nugget-modal">
+  <i class="close icon"></i>
+  <div class="content">
+    <div class="description">
+      <div class="ui header">Please edit the claim.</div>
+      <b>Current claim content:</b>
+      <div class="claim-content"></div>
+      <b>Dragged nugget:</b>
+      <div class="nugget-content"></div>
+      <div class="ui form">
+        <textarea name="claim-nugget-merge"
+                  id="claim-nugget-merge"
+                  rows="3"></textarea>
+      </div>
+
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui primary approve right button">
+      Submit
+    </div>
+  </div>
+</div>
+
+<div id="new-claim-form" class="ui form" style="display:none">
+  New claim form
+  <textarea name="new-claim-content"
+            id="new-claim-content"
+            rows="3"></textarea>
+  <div id="nugget-area">
+    Drop a nugget here
+  </div>
+  <div id="rec-to-use">
+    Potential more nuggets to use (ones that provide evidence) (simiar origin,
+    nuggets with a simiar word vector to my new claim)
+
+    Unviewed but maybe useful.
+  </div>
+  <div id="rec-fyi">
+    Potential duplicate claims, and why.
+    (claims with a simiar word vector to my new claim, simiar nugget
+    source)
+    potential nuggets that contradict
+  </div>
+</div>
