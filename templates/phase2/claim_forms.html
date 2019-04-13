@@ -6,27 +6,6 @@
   </div>
 </div>
 
-<div class="ui modal" id="claim-from-nugget-modal">
-  <i class="close icon"></i>
-  <div class="content">
-    <div class="description">
-      <div class="ui header">Please create a claim.</div>
-      <div class="nugget-content"></div>
-      <div class="ui form">
-        <textarea name="claim-from-nugget"
-                  id="claim-from-nugget"
-                  rows="3"></textarea>
-      </div>
-
-    </div>
-  </div>
-  <div class="actions">
-    <div class="ui primary approve right button">
-      Submit
-    </div>
-  </div>
-</div>
-
 <div class="ui modal" id="claim-merge-nugget-modal">
   <i class="close icon"></i>
   <div class="content">
@@ -51,24 +30,44 @@
   </div>
 </div>
 
-<div id="new-claim-form" class="ui form" style="display:none">
-  New claim form
-  <textarea name="new-claim-content"
-            id="new-claim-content"
-            rows="3"></textarea>
-  <div id="nugget-area">
-    Drop a nugget here
+<div id="new-claim-form" class="ui bottom attached segment form" style="display:none">
+  <div class="field">
+  <textarea name="new-claim-content" id="new-claim-content" rows="3"></textarea>
   </div>
-  <div id="rec-to-use">
-    Potential more nuggets to use (ones that provide evidence) (simiar origin,
-    nuggets with a simiar word vector to my new claim)
+  <button class="ui button" type="submit">Submit</button>
 
-    Unviewed but maybe useful.
+  <div id="nugget-area" class="ui vertical segment">
+    <h3 class="ui header">
+      Nuggets you selected
+    </h3>
+    <div class="dropzone droppable divided list ui" style="padding:0 2em;position:relative">
+      <div class="ui placeholder segment" style="min-height:6em">
+        <div class="ui header" style="margin:auto">Drop a nugget here.</div>
+      </div>
+    </div>
   </div>
-  <div id="rec-fyi">
-    Potential duplicate claims, and why.
-    (claims with a simiar word vector to my new claim, simiar nugget
-    source)
-    potential nuggets that contradict
+
+  <div class="ui vertical segment">
+    <h3 class="ui header">
+      Consider using these nuggets...
+      <div class="sub header">
+        Recommended nuggets that are less used.
+        Recommended nuggets that may provide useful evidence. (similar origin,
+        similar word vector to my new claim, referenced in the comments)
+      </div>
+    </h3>
+    <div id="rec-to-use"></div>
+  </div>
+
+  <div class="ui vertical segment">
+    <h3 class="ui header">
+      Also take a look at these items...
+      <div class="sub header">
+        Recommended nuggets that potentially contradict.
+        Recommended claims that potentially duplicate. (similar word vector,
+        similar nugget source)
+      </div>
+    </h3>
+    <div id="rec-fyi"></div>
   </div>
 </div>

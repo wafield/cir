@@ -23,7 +23,7 @@ def put_claim(request):
   response = {}
   content = request.REQUEST.get('content')
   slot = Claim.objects.get(id=request.REQUEST.get('slot_id'))
-  nugget = Claim.objects.get(id=request.REQUEST.get('nugget_id'))
+  nugget_ids = request.POST.getlist('nugget_ids[]')
   now = timezone.now()
   newClaim = Claim(forum_id=request.session['forum_id'], author=request.user,
                    created_at=now, updated_at=now,
@@ -36,8 +36,10 @@ def put_claim(request):
   claim_version.save()
   ClaimReference.objects.create(refer_type='claim', from_claim=newClaim,
                                 to_claim=slot)
-  ClaimReference.objects.create(refer_type='nug2claim', from_claim=nugget,
-                                to_claim=newClaim)
+  for nugget_id in nugget_ids:
+    ClaimReference.objects.create(refer_type='nug2claim',
+                                  from_claim_id=nugget_id,
+                                  to_claim=newClaim)
   SlotAssignment.objects.create(forum_id=request.session['forum_id'],
                                 user=request.user,
                                 entry=newClaim, created_at=now,

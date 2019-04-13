@@ -13,6 +13,7 @@ define([
   var module = {};
   module.nuggets_metadata = [];
   module.claims_metadata = [];
+  module.current_used_nuggets = [];
 
   module.get_nugget_list = function() {
     return $.ajax({
@@ -55,71 +56,68 @@ define([
 
     var counter = 0;
 
-    $('.statement-question-title').bind('dragover', function(event) {
+    // Dropping into the dropzone of a new claim.
+    $('#new-claim-form .dropzone').on('dragover', function(event) {
       event.preventDefault();
       event.stopPropagation();
       counter++;
-      $(this).addClass('dragging');
-    });
-    $('.statement-question-title').bind('dragleave', function(event) {
-      event.preventDefault();
-      event.stopPropagation();
-      counter--;
-      if (counter === 0) {
-        $(this).removeClass('dragging');
-      }
-    });
-    $('.statement-question-title').on('drop', function(event) {
-      event.preventDefault();
-      event.stopPropagation();
-      $(this).removeClass('dragging');
-      counter = 0;
-      var slot_id = $(this).parent().attr("data-id");
-      module.initiateNuggetInSlot(slot_id);
-    });
-
-    $('#claim-list .src_claim').on('dragover', function(event) {
-      event.preventDefault();
-      event.stopPropagation();
+      $('#slot-overview-claim .droppable').removeClass('dragging');
       $(this).addClass('dragging');
     }).on('dragleave', function(event) {
       event.preventDefault();
       event.stopPropagation();
-      $(this).removeClass('dragging');
+      counter--;
+      if (counter === 0) {
+        $('#slot-overview-claim .droppable').removeClass('dragging');
+      }
     }).on('drop', function(event) {
       event.preventDefault();
       event.stopPropagation();
-      $(this).removeClass('dragging');
-      var claim_id = $(this).attr("data-id");
-      module.mergeNuggetToClaim(claim_id);
+      counter = 0;
+      $('#slot-overview-claim .droppable').removeClass('dragging');
+      module.addNuggetToDropzone();
     });
+
+    // Merging into existing claim.
+    // $('#claim-list .src_claim').on('dragover', function(event) {
+    //   event.preventDefault();
+    //   event.stopPropagation();
+    //   $('#slot-overview-claim .droppable').removeClass('dragging');
+    //   $(this).addClass('dragging');
+    // }).on('dragleave', function(event) {
+    //   event.preventDefault();
+    //   event.stopPropagation();
+    //   $('#slot-overview-claim .droppable').removeClass('dragging');
+    // }).on('drop', function(event) {
+    //   event.preventDefault();
+    //   event.stopPropagation();
+    //   $('#slot-overview-claim .droppable').removeClass('dragging');
+    //   var claim_id = $(this).attr("data-id");
+    //   module.mergeNuggetToClaim(claim_id);
+    // });
   };
   module.initEvents = function() {
 
     $("#claim-list").on("click", ".add-claim", function(e) {
       $('#new-claim-form').insertAfter($(this)).show();
-      // $("#claim-list").hide();
-      // $("#claim-detail").show();
-      // $("#claim-list-back").show();
-      // var content = "";
-      // var data_hl_ids = "";
-      // $.ajax({
-      //   url: '/phase2/put_claim/',
-      //   type: 'post',
-      //   data: {
-      //     data_hl_ids: data_hl_ids,
-      //     theme_id: "-1",
-      //     content: content,
-      //   },
-      //   success: function(xhr) {
-      //     showClaimActivity(xhr.claim_id);
-      //   },
-      //   error: function(xhr) {
-      //     if (xhr.status == 403) {
-      //       Utils.notify('error', xhr.responseText);
-      //     }
-      //   }
-      // });
+    });
+
+    $('#new-claim-form .button').on('click', function(e) {
+      e.preventDefault();
+      var slot_id = $(this).parents('.statement-entry').data('id');
+      if (!module.current_used_nuggets || !slot_id) return;
+      $.ajax({
+        url: '/phase2/put_claim/',
+        type: 'post',
+        data: {
+          content: $('#new-claim-content').val(),
+          slot_id: slot_id,
+          nugget_ids: module.current_used_nuggets,
+        },
+        success: function() {
+          module.get_claim_list();
+        }
+      });
     });
 
     $("#claim-list").on("click", ".comment-claim", function(e) {
@@ -226,7 +224,10 @@ define([
   };
 
   module.initLayout = function() {
-    $.when(module.get_nugget_list(), module.get_claim_list()).done(function(promise1, promise2) {
+    $.when(
+        module.get_nugget_list(),
+        module.get_claim_list()
+    ).done(function(promise1, promise2) {
       module.initEvents();
     });
 
@@ -248,30 +249,6 @@ define([
     window.onDragStart = function(event) {
       window.draggedElementId = event.target.getAttribute('data-id');
     };
-  };
-
-  module.initiateNuggetInSlot = function(slot_id) {
-    if (!window.draggedElementId) {
-      return;
-    }
-    var src_nugget = $(`#statement-container .src_claim[data-id=${window.draggedElementId}] .content`).html();
-    $('#claim-from-nugget-modal .nugget-content').html(src_nugget);
-    $('#claim-from-nugget-modal').modal({
-      onApprove: function() {
-        $.ajax({
-          url: '/phase2/put_claim/',
-          type: 'post',
-          data: {
-            content: $('#claim-from-nugget').val(),
-            slot_id: slot_id,
-            nugget_id: window.draggedElementId,
-          },
-          success: function() {
-            module.get_claim_list();
-          }
-        });
-      }
-    }).modal('show');
   };
 
   module.mergeNuggetToClaim = function(claim_id) {
@@ -298,6 +275,19 @@ define([
         });
       }
     }).modal('show');
+  };
+
+  module.addNuggetToDropzone = function() {
+    if (!window.draggedElementId) return;
+    module.current_used_nuggets.push(window.draggedElementId);
+
+    var src_nugget = $(`#statement-container .src_claim[data-id=${window.draggedElementId}] .content`);
+    $('#nugget-area .placeholder').remove();
+    $('#nugget-area .list').append(src_nugget.clone().removeClass('content').addClass('item'));
+
+    // $('#claim-merge-nugget-modal .nugget-content').html(src_nugget);
+    // var dest_claim = $(`#claim-list .src_claim[data-id=${claim_id}] .content`).html();
+    // $('#claim-merge-nugget-modal .claim-content').html(dest_claim);
   };
 
   module.initLayout();

@@ -1,9 +1,8 @@
 #cir {
   margin: 0rem;
   padding: 1rem;
-	background-color: #F3F4F5;
+  background-color: #F3F4F5;
 }
-
 
 #cir .container {
   position: relative;
@@ -13,9 +12,11 @@
 #cir .following.menu .menu .active.item {
   font-weight: bold;
 }
+
 #cir .following.menu .item .menu {
   margin: 0em;
 }
+
 #cir .following.menu .menu .item {
   margin: 0em;
   padding: 0.5rem 0.25rem;
@@ -24,6 +25,7 @@
 .statement-question-title {
   position: relative;
 }
+
 .statement-question-title.dragging:after {
   width: 100%;
   height: 100%;
@@ -34,13 +36,14 @@
   font-size: 16px;
   left: 0;
   top: 0;
-  background-color:  #d9d9d9;
-  border:  2px dashed #2185d0;
+  background-color: #d9d9d9;
+  border: 2px dashed #2185d0;
 }
 
 #claim-list .src_claim {
   position: relative;
 }
+
 #claim-list .src_claim.dragging:after {
   width: 100%;
   height: 100%;
@@ -58,4 +61,16 @@
 
 #statement-container {
   font-size: 16px;
+}
+
+#new-claim-form .dropzone.dragging:after {
+  border-radius: 0.29em;
+  content: '';
+  position: absolute;
+  z-index: 11;
+  bottom: 0;
+  top: 0;
+  border: 5px dashed #2185d0;
+  left: 2em;
+  right: 2em;
 }

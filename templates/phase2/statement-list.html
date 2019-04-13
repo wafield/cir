@@ -9,7 +9,7 @@
       {% if slot_info.claims %}
 
         {% for src_claim in slot_info.claims %}
-          <div class="src_claim item" data-id="{{ src_claim.id }}"
+          <div class="src_claim item droppable" data-id="{{ src_claim.id }}"
                style="padding:10px 0;position:relative;">
             <div class="content">
               {{ src_claim.content | safe }}
@@ -33,7 +33,7 @@
         (No claims for now.)
       {% endif %}
     </div>
-    <button class="ui fluid button add-claim" data-id="{{ slot_info.id }}">
+    <button class="ui fluid top attached button add-claim" data-id="{{ slot_info.id }}">
       Add a claim
     </button>
   </div>
