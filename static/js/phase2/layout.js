@@ -2,8 +2,6 @@ define([
   'utils',
   'doc/qa',
   'semantic-ui',
-  'realtime/socket',
-  'feed/activity-feed'
 ], function(
     Utils,
     QA
@@ -14,6 +12,7 @@ define([
   module.nuggets_metadata = [];
   module.claims_metadata = [];
   module.current_used_nuggets = [];
+  module.claim_words = [];
 
   module.get_nugget_list = function() {
     return $.ajax({
@@ -77,41 +76,53 @@ define([
       $('#slot-overview-claim .droppable').removeClass('dragging');
       module.addNuggetToDropzone();
     });
-
-    // Merging into existing claim.
-    // $('#claim-list .src_claim').on('dragover', function(event) {
-    //   event.preventDefault();
-    //   event.stopPropagation();
-    //   $('#slot-overview-claim .droppable').removeClass('dragging');
-    //   $(this).addClass('dragging');
-    // }).on('dragleave', function(event) {
-    //   event.preventDefault();
-    //   event.stopPropagation();
-    //   $('#slot-overview-claim .droppable').removeClass('dragging');
-    // }).on('drop', function(event) {
-    //   event.preventDefault();
-    //   event.stopPropagation();
-    //   $('#slot-overview-claim .droppable').removeClass('dragging');
-    //   var claim_id = $(this).attr("data-id");
-    //   module.mergeNuggetToClaim(claim_id);
-    // });
   };
   module.initEvents = function() {
 
     $("#claim-list").on("click", ".add-claim", function(e) {
-      $('#new-claim-form').insertAfter($(this)).show();
+      module.curr_slot_id = $(this).parents('.statement-entry').data('id');
+      $('#new-claim-form > div').insertAfter($(this)).show();
+      $('#new-claim-area').addClass('full-width');
+      module.refreshNuggetReco();
+      module.refreshFYIReco();
+    });
+
+    $('#new-claim-content').on('keyup', function(e) {
+      clearTimeout(module.keyPressTimeout);
+      var content = $('#new-claim-content').val();
+      if (content.trim().length == 0) return;
+
+      $('#rec-to-use').parent().addClass('loading');
+      $('#rec-fyi').parent().addClass('loading');
+
+      module.keyPressTimeout = setTimeout(function() {
+        $.ajax({
+          url: '/phase2/process_text/',
+          type: 'post',
+          data: {'content': content.trim()},
+          success: function(xhr) {
+            module.claim_words = xhr.words;
+            module.refreshNuggetReco();
+            module.refreshFYIReco(true);
+          },
+          error: function(xhr) {
+            if (xhr.status == 403) {
+              Utils.notify('error', xhr.responseText);
+            }
+          }
+        });
+      }, 2000);
     });
 
     $('#new-claim-form .button').on('click', function(e) {
       e.preventDefault();
-      var slot_id = $(this).parents('.statement-entry').data('id');
-      if (!module.current_used_nuggets || !slot_id) return;
+      if (!module.current_used_nuggets || !module.curr_slot_id) return;
       $.ajax({
         url: '/phase2/put_claim/',
         type: 'post',
         data: {
           content: $('#new-claim-content').val(),
-          slot_id: slot_id,
+          slot_id: module.curr_slot_id,
           nugget_ids: module.current_used_nuggets,
         },
         success: function() {
@@ -278,19 +289,218 @@ define([
   };
 
   module.addNuggetToDropzone = function() {
-    if (!window.draggedElementId) return;
-    module.current_used_nuggets.push(window.draggedElementId);
-
     var src_nugget = $(`#statement-container .src_claim[data-id=${window.draggedElementId}] .content`);
-    $('#nugget-area .placeholder').remove();
-    $('#nugget-area .list').append(src_nugget.clone().removeClass('content').addClass('item'));
+    if (src_nugget.length == 0) return;
 
-    // $('#claim-merge-nugget-modal .nugget-content').html(src_nugget);
-    // var dest_claim = $(`#claim-list .src_claim[data-id=${claim_id}] .content`).html();
-    // $('#claim-merge-nugget-modal .claim-content').html(dest_claim);
+    if (!window.draggedElementId) return;
+
+    module.current_used_nuggets.push(window.draggedElementId);
+    $('#nugget-area .placeholder').remove();
+    $('#nugget-area .list').append(src_nugget.first()
+        .clone().removeClass('content').addClass('item'));
+
+    module.refreshNuggetReco();
+    module.refreshFYIReco();
   };
 
   module.initLayout();
+
+  module.refreshNuggetReco = function() {
+    $('#rec-to-use').parent().addClass('loading');
+
+    var currUserId = sessionStorage.getItem('user_id');
+    var existing_claim_words = module.getExistingClaimWords();
+    var chosen_nugget_words = module.getChosenNuggetWords();
+
+    for (var nid in module.nuggets_metadata) {
+      if (!module.nuggets_metadata.hasOwnProperty(nid)) continue;
+
+      var nug = module.nuggets_metadata[nid];
+
+      // Consider nugget's author info, true if not by me.
+      nug['is_not_by_me'] = (nug.author_id != currUserId);
+
+      // Consider nugget's word vector info
+      nug['novelty_over_existing_claims'] = module.getVerbalNovelty(nug['words'], existing_claim_words);
+
+      // Consider which question the nugget answers
+      nug['same_question'] = (nug['slot_id'] == module.curr_slot_id);
+
+      // Consider whether this nugget has been used
+      nug['used_in'] = nug['used_in_claims'].length;
+
+      // Consider whether this nugget is in the current draft
+      nug['is_already_chosen'] = module.current_used_nuggets.includes(nid.toString());
+
+      // Consider whether this nugget has a high word similarity with chosen nuggets.
+      nug['similar_to_chosen'] = 1 - module.getVerbalNovelty(nug['words'], chosen_nugget_words);
+
+      // Consider whether this nugget is from the same docsection with one chosen nugget.
+      nug['same_doc_section'] = module.current_used_nuggets.map(
+          nid => module.nuggets_metadata[nid].docsrc_id
+      ).includes(nug.docsrc_id);
+
+      // Consider how far it is in the source documents (only if in same section).
+      nug['src_token_distance'] = 0;
+      if (nug['same_doc_section']) {
+        for (var i = 0; i < module.current_used_nuggets.length; i ++) {
+          var target_nug_id = module.current_used_nuggets[i];
+          if (target_nug_id == nid) continue;
+          nug['src_token_distance'] = Math.min(
+              nug['src_token_distance'],
+              Math.abs(module.nuggets_metadata[target_nug_id].src_offset - nug['src_offset'])
+          );
+        }
+      }
+
+      // Consider if the nugget has a high verbal overlap with the claim-in-progress.
+      nug['similar_to_claim_in_progress'] = 1 - module.getVerbalNovelty(nug['words'], module.claim_words);
+
+      nug['reco_score'] =
+
+          + (nug['is_not_by_me'] ? 1: 0)
+          + nug['novelty_over_existing_claims'] * 10
+          + (nug['same_question'] ? 3: 0)
+          - nug['used_in'] * 4
+
+
+          // The following criteria are used for when some nuggets are chosen.
+          + nug['similar_to_chosen'] * 20
+          + (nug['same_doc_section'] ? 10: 0)
+          + (nug['same_doc_section'] ? (Math.pow(1.05, -nug['src_token_distance']) * 100) : 0)
+
+          // The following criteria are used for when claim is partially written.
+          + nug['similar_to_claim_in_progress'] * 30
+
+
+          // Exclude nuggets already chosen.
+          - (nug['is_already_chosen'] ? 100000 : 0);
+    }
+
+    // Find out top 5 in recommendation.
+    var items = Object.keys(module.nuggets_metadata)
+        .map(k => [k, module.nuggets_metadata[k]])
+        .sort((first, second) => (second[1]['reco_score'] - first[1]['reco_score']))
+        .slice(0, 5);
+    $('#rec-to-use').html('');
+    for (var i=0; i < items.length; i++) {
+      var nid = items[i][0];
+      var score = items[i][1]['reco_score'];
+      var src_nugget = $(`#statement-container .src_claim[data-id=${nid}] .content`);
+      var $item = $('<div class="item">')
+          .html(
+              src_nugget.html() +
+              `<div class="ui blue circular label">${score.toPrecision(3)}</div>`
+          );
+      $('#rec-to-use').append($item);
+    }
+    setTimeout(() => $('#rec-to-use').parent().removeClass('loading'), 500);
+  };
+
+  module.refreshFYIReco = function() {
+    $('#rec-fyi').parent().addClass('loading');
+
+    var recommendable_claims = [];
+
+    for (var cid in module.claims_metadata) {
+      if (!module.claims_metadata.hasOwnProperty(cid)) continue;
+
+      var claim = module.claims_metadata[cid];
+
+      // Consider if this claim's source nuggets overlaps with the currently chosen
+      // nuggets.
+      claim['dup_by_nugget_collection'] = module.getNuggetOverlap(module.current_used_nuggets, claim.src_nuggets);
+
+      claim['dup_by_claim_in_progress'] = module.getVerbalNovelty(claim['words'], module.claim_words);
+
+      if (claim['dup_by_nugget_collection'] > 0.5) {
+        claim['fyi_reason'] = 'Dup';
+        recommendable_claims.push(cid);
+      }
+    }
+
+    $('#rec-fyi').html('');
+    for (var i = 0; i < recommendable_claims.length; i++) {
+      var cid = recommendable_claims[i];
+      var reason = module.claims_metadata[cid]['fyi_reason'];
+      var src_claim = $(`#claim-list .src_claim[data-id=${cid}] .content`);
+      var $item = $('<div class="item">')
+          .html(
+              src_claim.html() +
+              `<div class="ui blue circular label">${reason}</div>`
+          );
+      $('#rec-fyi').append($item);
+    }
+    setTimeout(() => $('#rec-fyi').parent().removeClass('loading'), 500);
+  };
+
+  module.getExistingClaimWords = function() {
+    var words = {};
+    for (var cid in module.claims_metadata) {
+      var w = module.claims_metadata[cid].words;
+      for (var i = 0; i < w.length; i ++) {
+        if (!words[w[i]]) {
+          words[w[i]] = 0
+        }
+        words[w[i]] ++
+      }
+    }
+    return words;
+  };
+
+  module.getChosenNuggetWords = function() {
+    var words = {};
+    module.current_used_nuggets.forEach(nid => {
+      var w = module.nuggets_metadata[nid].words;
+      for (var i = 0; i < w.length; i++) {
+        if (!words[w[i]]) {
+          words[w[i]] = 0
+        }
+        words[w[i]]++
+      }
+    });
+    return words;
+  };
+
+  /**
+   *
+   * @param words ['a', 'b', 'c', 'd']
+   * @param dictionary ['a', 'b', 'c'] or {'a': 5, 'b': 3}
+   * @returns {number} novelty = 1/4.
+   */
+  module.getVerbalNovelty = function(words, dictionary) {
+    var size = words.length;
+    var difference = 0;
+    for (var i = 0; i < size; i ++) {
+      if (Array.isArray(dictionary)) {
+        if (!dictionary.includes(words[i])) {
+          difference ++;
+        }
+      } else {
+        if (!(words[i] in dictionary)) {
+          difference ++;
+        }
+      }
+    }
+    return difference / size;
+  };
+
+  /**
+   *
+   * @param selected nuggets [ 1, 3, 5 ]
+   * @param target claim's nugget collection [1, 3, 5, 7]
+   * @returns {number} 3 / 4.
+   */
+  module.getNuggetOverlap = function(selected, target) {
+    var size = target.length;
+    var overlap = 0;
+    for (var i = 0; i < size; i ++) {
+      if (selected.includes(target[i].toString())) {
+        overlap ++;
+      }
+    }
+    return overlap / size;
+  };
 
   return module;
 });

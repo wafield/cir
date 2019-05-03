@@ -31,43 +31,44 @@
 </div>
 
 <div id="new-claim-form" class="ui bottom attached segment form" style="display:none">
-  <div class="field">
-  <textarea name="new-claim-content" id="new-claim-content" rows="3"></textarea>
+  <div class="ui segment form">
+    <div class="field">
+      <textarea name="new-claim-content" id="new-claim-content"
+                rows="3"></textarea>
+    </div>
+    <button class="ui button field" type="submit">Submit</button>
   </div>
-  <button class="ui button" type="submit">Submit</button>
 
-  <div id="nugget-area" class="ui vertical segment">
+  <div id="nugget-area" class="ui segment">
     <h3 class="ui header">
       Nuggets you selected
     </h3>
-    <div class="dropzone droppable divided list ui" style="padding:0 2em;position:relative">
+    <div class="ui dropzone droppable relaxed divided list" style="padding:0 2em;position:relative">
       <div class="ui placeholder segment" style="min-height:6em">
         <div class="ui header" style="margin:auto">Drop a nugget here.</div>
       </div>
     </div>
   </div>
 
-  <div class="ui vertical segment">
+  <div class="ui segment">
     <h3 class="ui header">
       Consider using these nuggets...
       <div class="sub header">
-        Recommended nuggets that are less used.
-        Recommended nuggets that may provide useful evidence. (similar origin,
-        similar word vector to my new claim, referenced in the comments)
+        These are less used, from similar origin with the ones you selected,
+        have similar wording with your claim, may provide useful evidence.
       </div>
     </h3>
-    <div id="rec-to-use"></div>
+    <div id="rec-to-use" class="ui relaxed divided list"
+         style="padding:0 2em;position:relative"></div>
   </div>
 
-  <div class="ui vertical segment">
+  <div class="ui segment" style="display:none">
     <h3 class="ui header">
       Also take a look at these items...
       <div class="sub header">
-        Recommended nuggets that potentially contradict.
-        Recommended claims that potentially duplicate. (similar word vector,
-        similar nugget source)
+        These may duplicate / contradict with the claim-in-progress.
       </div>
     </h3>
-    <div id="rec-fyi"></div>
+    <div id="rec-fyi" class="ui relaxed divided list" style="padding:0 2em;position:relative"></div>
   </div>
 </div>

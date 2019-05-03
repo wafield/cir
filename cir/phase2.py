@@ -47,6 +47,10 @@ def put_claim(request):
   response["claim_id"] = newClaim.id
   return HttpResponse(json.dumps(response), mimetype='application/json')
 
+def process_text(request):
+  content = request.REQUEST.get('content')
+  words = stem_words(remove_stop_words(tokenize(content)))
+  return HttpResponse(json.dumps({'words': words}), mimetype='application/json')
 
 def add_nugget_to_claim(request):
   """
@@ -110,13 +114,17 @@ def get_nugget_list(request):
         nuggets_metadata[nugget_info['id']] = {
           'cat': category,
           'slot_question': slot.title,
+          'slot_id': slot.id,
           'words': words,
           'used_in_claims': nugget_info['used_in_claims'],
           'author_id': nugget_info['author_id'],
           'docsrc_author': get_doc_author(src_doc.title),
           'docsrc_title': src_doc.title,
+          'docsrc_id': src_doc.id,
           'docsrc_cat': src_doc.getCat(),
           'src_offset': highlight.start_pos,
+          'reco_score': 0,
+          'reco_reason': '',
         }
       context['categories'][category].append(slot_info)
 
@@ -175,6 +183,9 @@ def get_claim_list(request):
           'words': words,
           'src_nuggets': src_nuggets,
           'author_id': claim['author_id'],
+          'reco_score': 0,
+          'reco_reason': '',
+          'slot_id': slot.id,
         }
       context['categories'][category].append(slot_info)
 

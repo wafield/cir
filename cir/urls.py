@@ -123,7 +123,7 @@ urlpatterns = patterns(
       phase2.get_claim_comment_list),
   url(r'^phase2/put_claim_comment/$',
       phase2.put_claim_comment),
-
+  url(r'^phase2/process_text/$', phase2.process_text),
 
 
 

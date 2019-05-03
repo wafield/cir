@@ -33,8 +33,11 @@
         (No claims for now.)
       {% endif %}
     </div>
-    <button class="ui fluid top attached button add-claim" data-id="{{ slot_info.id }}">
-      Add a claim
-    </button>
+    <div id="new-claim-area" class="ui segments">
+      <button class="ui fluid top attached button add-claim"
+              data-id="{{ slot_info.id }}">
+        Add a claim
+      </button>
+    </div>
   </div>
 {% endfor %}

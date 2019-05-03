@@ -234,10 +234,6 @@ define([
 			fields: {
 				email: {
 					identifier: 'email',
-					rules: [{
-						type: 'email',
-						prompt: 'Please enter a valid email address'
-					}]
 				},
 				password: {
 					identifier: 'password',
