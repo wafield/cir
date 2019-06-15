@@ -84,7 +84,7 @@ define([
       $('#new-claim-form > div').insertAfter($(this)).show();
       $('#new-claim-area').addClass('full-width');
       module.refreshNuggetReco();
-      module.refreshFYIReco();
+      // module.refreshFYIReco();
     });
 
     $('#new-claim-content').on('keyup', function(e) {
@@ -103,7 +103,7 @@ define([
           success: function(xhr) {
             module.claim_words = xhr.words;
             module.refreshNuggetReco();
-            module.refreshFYIReco(true);
+            // module.refreshFYIReco(true);
           },
           error: function(xhr) {
             if (xhr.status == 403) {
@@ -340,16 +340,28 @@ define([
           nid => module.nuggets_metadata[nid].docsrc_id
       ).includes(nug.docsrc_id);
 
+      // Consider whether this nugget is from the same author with chosen nuggets.
+      nug['same_original_author'] = module.current_used_nuggets.map(
+          nid => module.nuggets_metadata[nid].docsrc_author
+      ).includes(nug.docsrc_author);
+
       // Consider how far it is in the source documents (only if in same section).
       nug['src_token_distance'] = 0;
       if (nug['same_doc_section']) {
         for (var i = 0; i < module.current_used_nuggets.length; i ++) {
           var target_nug_id = module.current_used_nuggets[i];
           if (target_nug_id == nid) continue;
-          nug['src_token_distance'] = Math.min(
-              nug['src_token_distance'],
-              Math.abs(module.nuggets_metadata[target_nug_id].src_offset - nug['src_offset'])
-          );
+
+          var distance_to_target = Math.abs(
+              module.nuggets_metadata[target_nug_id].src_offset - nug['src_offset']);
+
+          if (nug['src_token_distance'] == 0) {
+            nug['src_token_distance'] = distance_to_target;
+          } else {
+            nug['src_token_distance'] = Math.min(
+                nug['src_token_distance'], distance_to_target
+            );
+          }
         }
       }
 
@@ -358,19 +370,21 @@ define([
 
       nug['reco_score'] =
 
-          + (nug['is_not_by_me'] ? 1: 0)
+          // (nug['same_original_author'] ? 1 : 0)
+
+          // + (nug['is_not_by_me'] ? 1: 0)
           + nug['novelty_over_existing_claims'] * 10
-          + (nug['same_question'] ? 3: 0)
-          - nug['used_in'] * 4
-
-
-          // The following criteria are used for when some nuggets are chosen.
-          + nug['similar_to_chosen'] * 20
-          + (nug['same_doc_section'] ? 10: 0)
-          + (nug['same_doc_section'] ? (Math.pow(1.05, -nug['src_token_distance']) * 100) : 0)
-
-          // The following criteria are used for when claim is partially written.
-          + nug['similar_to_claim_in_progress'] * 30
+          + (nug['same_question'] ? 10: 0)
+          // - nug['used_in'] * 4
+          //
+          //
+          // // The following criteria are used for when some nuggets are chosen.
+          // + nug['similar_to_chosen'] * 20
+          // + (nug['same_doc_section'] ? 10: 0)
+          // + (nug['same_doc_section'] ? (Math.pow(1.008, -nug['src_token_distance']) * 80) : 0)
+          //
+          // // The following criteria are used for when claim is partially written.
+          // + nug['similar_to_claim_in_progress'] * 30
 
 
           // Exclude nuggets already chosen.
@@ -381,7 +395,7 @@ define([
     var items = Object.keys(module.nuggets_metadata)
         .map(k => [k, module.nuggets_metadata[k]])
         .sort((first, second) => (second[1]['reco_score'] - first[1]['reco_score']))
-        .slice(0, 5);
+        .slice(0, 10);
     $('#rec-to-use').html('');
     for (var i=0; i < items.length; i++) {
       var nid = items[i][0];

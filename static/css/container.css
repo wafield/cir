@@ -78,3 +78,7 @@
 #new-claim-area.full-width {
   margin: 0 -15px;
 }
+
+#new-claim-area .ui.small.label {
+  display: none;
+}

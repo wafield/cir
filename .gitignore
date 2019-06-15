@@ -1,6 +1,7 @@
 testcase*.py
 cir/migrations/*
 **/.DS_STORE
+**/.DS_Store
 .settings/**
 .idea/**
 cir/setting.py
