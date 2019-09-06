@@ -1,17 +1,22 @@
 import json
 import re
 import nltk
-
+import math
+from collections import defaultdict
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.utils import timezone
+from string import punctuation
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer
-
+from nltk.corpus import wordnet as wn
+import gensim
 from cir.models import *
+import pickle
+from gensim import corpora
 
-stop_words = set(stopwords.words('english'))
+stop_words = stopwords.words('english') + list(punctuation)
 ps = PorterStemmer()
 
 def put_claim(request):
@@ -89,12 +94,20 @@ def get_nugget_list(request):
   :param request:
   :return:
   """
+  dictionary = gensim.corpora.Dictionary.load('dictionary.gensim')
+  corpus = pickle.load(open('corpus.pkl', 'rb'))
+  ldamodel = gensim.models.ldamodel.LdaModel.load('model6.gensim')
+
+
   forum = Forum.objects.get(id=request.session['forum_id'])
   response = {}
   context = {}
   category_list = ['finding', 'pro', 'con']
   nuggets_metadata = {}
   context['categories'] = {'finding': [], 'pro': [], 'con': []}
+  vocabulary = set()
+  all_nuggets = []
+  word_idf = defaultdict(lambda: 0)
   slots = Claim.objects.filter(forum=forum, is_deleted=False,
                                stmt_order__isnull=False)
   for category in category_list:
@@ -107,15 +120,25 @@ def get_nugget_list(request):
         nugget_info['used_in_claims'] = []
         for ref in target_claims:
           nugget_info['used_in_claims'].append(ref.to_claim.id)
-        words = stem_words(remove_stop_words(tokenize(nugget_info['content'])))
+        
+        # Stemmed word-bag for each nugget.
+        tokens = stem_words(remove_stop_words(tokenize(nugget_info['content'])))
+        all_nuggets.append(tokens)
+
+        vocabulary.update(tokens)
+        for word in tokens:
+          word_idf[word] += 1
         highlight = HighlightClaim.objects.get(claim_id=nugget_info['id']).highlight
         src_doc = highlight.context.docsection
+
+        topics_prob = ldamodel.get_document_topics(dictionary.doc2bow(tokens))
+
 
         nuggets_metadata[nugget_info['id']] = {
           'cat': category,
           'slot_question': slot.title,
           'slot_id': slot.id,
-          'words': words,
+          'words': tokens,
           'used_in_claims': nugget_info['used_in_claims'],
           'author_id': nugget_info['author_id'],
           'docsrc_author': get_doc_author(src_doc.title),
@@ -128,6 +151,18 @@ def get_nugget_list(request):
         }
       context['categories'][category].append(slot_info)
 
+
+
+  # Compute TF-IDF
+  for word in vocabulary:
+    word_idf[word] = math.log(len(nuggets_metadata) / float(1 + word_idf[word]))
+  for nug_id in nuggets_metadata:
+    nug_metadata = nuggets_metadata[nug_id]
+    nug_metadata['tfidf'] = {}
+    words = nug_metadata['words']
+    for w in set(words):
+      nug_metadata['tfidf'][w] = float(words.count(w)) / len(words) * word_idf[w]
+   
   response['nuggets_metadata'] = nuggets_metadata
   response['html'] = render_to_string('phase2/nuggets.html', context)
   return HttpResponse(json.dumps(response), mimetype='application/json')
@@ -174,13 +209,13 @@ def get_claim_list(request):
     for slot in slots_cat:
       slot_info = slot.getAttrSlot(forum)
       for claim in slot_info['claims']:
-        words = stem_words(remove_stop_words(tokenize(claim['content'])))
+        tokens = stem_words(remove_stop_words(tokenize(claim['content'])))
         src_nuggets = []
         for ref in ClaimReference.objects.filter(refer_type='nug2claim', to_claim_id=claim['id']):
           src_nuggets.append(ref.from_claim.id)
         claims_metadata[claim['id']] = {
           'cat': category,
-          'words': words,
+          'words': tokens,
           'src_nuggets': src_nuggets,
           'author_id': claim['author_id'],
           'reco_score': 0,
@@ -226,11 +261,20 @@ def put_claim_comment(request):
 
 
 def remove_stop_words(words):
-  return [w.lower() for w in words if not w.lower() in stop_words]
-
+  results = []
+  for w in words:
+    if not w.isalpha():
+      continue
+    if w.lower() in stop_words:
+      continue
+    results.append(w.lower())
+  return results
 
 def stem_words(words):
-  return [ps.stem(w) for w in words]
+  # Using WordNet lemmatizer.
+  return [wn.morphy(w) or w for w in words]
+
+  # return [ps.stem(w) for w in words]  # Using Porter Stemmer
 
 
 def tokenize(sent):

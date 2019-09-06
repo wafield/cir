@@ -23,6 +23,7 @@ define([
         $('#statement-container').html(xhr.html);
         // module.nugget_claim_usage = xhr.nugget_claim_usage;
         module.nuggets_metadata = xhr.nuggets_metadata;
+        console.log(xhr.nuggets_metadata);
       },
       error: function(xhr) {
         $('#draft-stmt').css('opacity', '1.0');
@@ -322,6 +323,7 @@ define([
 
       // Consider nugget's word vector info
       nug['novelty_over_existing_claims'] = module.getVerbalNovelty(nug['words'], existing_claim_words);
+      nug['novelty_over_existing_claims_tfidf'] = module.getVerbalNoveltyTfidf(nug, existing_claim_words);
 
       // Consider which question the nugget answers
       nug['same_question'] = (nug['slot_id'] == module.curr_slot_id);
@@ -334,6 +336,12 @@ define([
 
       // Consider whether this nugget has a high word similarity with chosen nuggets.
       nug['similar_to_chosen'] = 1 - module.getVerbalNovelty(nug['words'], chosen_nugget_words);
+      nug['similar_to_chosen_tfidf'] = module.getVerbalSimilarityTfidf(nug, chosen_nugget_words);
+
+      // Consider if the nugget has a high verbal overlap with the claim-in-progress.
+      // nug['similar_to_claim_in_progress'] = 1 - module.getVerbalNovelty(nug['words'], module.claim_words);
+      nug['similar_to_claim_in_progress'] = module.getOccurrenceCount(nug['words'], module.claim_words);
+      nug['similar_to_claim_in_progress_tfidf'] = module.getOccurrenceCountTfidf(nug, module.claim_words);
 
       // Consider whether this nugget is from the same docsection with one chosen nugget.
       nug['same_doc_section'] = module.current_used_nuggets.map(
@@ -364,27 +372,25 @@ define([
           }
         }
       }
-
-      // Consider if the nugget has a high verbal overlap with the claim-in-progress.
-      nug['similar_to_claim_in_progress'] = 1 - module.getVerbalNovelty(nug['words'], module.claim_words);
-
       nug['reco_score'] =
 
           // (nug['same_original_author'] ? 1 : 0)
 
+          /* Scenario 1 */
+
           // + (nug['is_not_by_me'] ? 1: 0)
-          + nug['novelty_over_existing_claims'] * 10
-          + (nug['same_question'] ? 10: 0)
+          // + nug['novelty_over_existing_claims_tfidf'] * 10 // novelty of candidate nugget over existing claims.
+          + (nug['same_question'] ? 1: 0)
           // - nug['used_in'] * 4
-          //
-          //
-          // // The following criteria are used for when some nuggets are chosen.
-          // + nug['similar_to_chosen'] * 20
-          // + (nug['same_doc_section'] ? 10: 0)
-          // + (nug['same_doc_section'] ? (Math.pow(1.008, -nug['src_token_distance']) * 80) : 0)
-          //
-          // // The following criteria are used for when claim is partially written.
-          // + nug['similar_to_claim_in_progress'] * 30
+
+          /* Scenario 2 - some nuggets are selected */
+          + nug['similar_to_chosen_tfidf'] * 20
+          // + (nug['same_doc_section'] ? 10: 0) // source provenance.
+          // + (nug['same_doc_section'] ? (Math.pow(1.008, -nug['src_token_distance']) * 80) : 0)  // document context provenance.
+
+          /* Scenario 3 - claim content is partially written */
+          // + nug['similar_to_claim_in_progress'] 
+          + nug['similar_to_claim_in_progress_tfidf'] * 100
 
 
           // Exclude nuggets already chosen.
@@ -401,14 +407,36 @@ define([
       var nid = items[i][0];
       var score = items[i][1]['reco_score'];
       var src_nugget = $(`#statement-container .src_claim[data-id=${nid}] .content`);
-      var $item = $('<div class="item">')
-          .html(
-              src_nugget.html() +
-              `<div class="ui blue circular label">${score.toPrecision(3)}</div>`
-          );
+      // var tags = `<div class="ui blue circular label">${score.toPrecision(3)}</div>`;
+      var tags = '';
+      tags += `<div class="ui circular label">Nov=${items[i][1]['novelty_over_existing_claims_tfidf'].toPrecision(3)}</div>`;
+      if (items[i][1]['same_question']) {
+        tags += `<div class="ui circular teal label">Same Q</div>`;
+      }
+      if (items[i][1]['is_not_by_me']) {
+        tags += `<div class="ui circular label">Not by Me</div>`;
+      }
+      if (items[i][1]['used_in'] > 0) {
+        tags += `<div class="ui circular label">Used=${items[i][1]['used_in']}</div>`;
+      }
+      var sim = items[i][1]['similar_to_chosen_tfidf'] +
+          items[i][1]['similar_to_claim_in_progress_tfidf'];
+      if (sim != 0) {
+        tags += `<div class="ui circular label">Sim=${sim.toPrecision(3)}</div>`;
+      }
+      
+      /* Overall Tags */
+      if (items[i][1]['novelty_over_existing_claims_tfidf'] > 0.09) {
+        tags += `<div class="ui red circular label">Novel</div>`;
+      }
+      if (sim > 0.01) {
+        tags += `<div class="ui green circular label">Similar</div>`;
+      }
+
+      var $item = $('<div class="item">').html(src_nugget.html() + tags);
       $('#rec-to-use').append($item);
     }
-    setTimeout(() => $('#rec-to-use').parent().removeClass('loading'), 500);
+    setTimeout(() => $('#rec-to-use').parent().removeClass('loading'), 0);
   };
 
   module.refreshFYIReco = function() {
@@ -499,6 +527,28 @@ define([
     return difference / size;
   };
 
+  module.getVerbalNoveltyTfidf = function(nug, dictionary) {
+    var score = 0;
+    for (let word in nug['tfidf']) {
+      if (typeof dictionary == 'object' && !(word in dictionary)) {
+        score += nug['tfidf'][word];
+      }
+    }
+    // Normalize by nugget length.
+    return score / nug['words'].length;
+  };
+
+  module.getVerbalSimilarityTfidf = function(nug, dictionary) {
+    var score = 0;
+    for (let word in nug['tfidf']) {
+      if (typeof dictionary == 'object' && word in dictionary) {
+        score += nug['tfidf'][word];
+      }
+    }
+    // Normalize by nugget length.
+    return score / nug['words'].length;
+  };
+
   /**
    *
    * @param selected nuggets [ 1, 3, 5 ]
@@ -516,6 +566,39 @@ define([
     return overlap / size;
   };
 
+  /**
+   * Times words from text show up in dictionary.
+   */
+  module.getOccurrenceCount = function(text, dictionary) {
+    let hit = 0;
+    let wordFreq = {};
+    for (var d of dictionary) {
+      wordFreq[d] = 0;
+    }
+    for (var word of text) {
+      if (word in wordFreq) {
+        hit += 1;
+        if (wordFreq[word] == 0) {
+          hit += 5;
+        } 
+        wordFreq[word] ++;
+      }      
+    }
+    return hit;
+  };
+
+  module.getOccurrenceCountTfidf = function(nugget, dictionary) {
+    if (dictionary.length == 0) return 0;
+
+    const tfidf = nugget['tfidf'];
+    var hit = 0
+    for (var d of dictionary) {
+      if (d in tfidf) {
+        hit += tfidf[d];
+      }
+    }
+    return hit / dictionary.length;
+  };
   return module;
 });
 

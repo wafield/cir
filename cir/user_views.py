@@ -11,8 +11,8 @@ VISITOR_ROLE = 'visitor'
 
 def login_view(request):
     response = {}
-    email = request.REQUEST.get('email').lower()
-    password = request.REQUEST.get('password')
+    email = 'yxt157@ist.psu.edu' # request.REQUEST.get('email').lower()
+    password = 'ytt' # request.REQUEST.get('password')
     users = User.objects.filter(username=email)
     if users.count() != 1:
         return HttpResponse("Your user name and/or password is incorrect.", status=403)

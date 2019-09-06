@@ -2,10 +2,14 @@ from django.shortcuts import render, render_to_response, redirect
 from django.template import RequestContext
 from django.db.models import Q
 from django.utils import timezone
+from gensim import corpora
 
+import gensim
+import pickle
 from cir.models import *
 from cir.phase_control import PHASE_CONTROL
 from cir.settings import DISPATCHER_URL
+from phase2 import stem_words, tokenize, remove_stop_words
 
 VISITOR_ROLE = 'visitor'
 
@@ -140,6 +144,31 @@ def enter_forum(request, forum_url, phase_name):  # access /forum_name
 
   request.session['role'] = context['role'] = role
 
+  # # Update corpus
+  # category_list = ['finding', 'pro', 'con']
+  # all_nuggets = []
+  # slots = Claim.objects.filter(forum=forum, is_deleted=False,
+  #                              stmt_order__isnull=False)
+  # for category in category_list:
+  #   for slot in slots.filter(claim_category=category).order_by('stmt_order'):
+  #     slot_info = slot.getAttrSlot(forum)
+  #     for nugget_info in slot_info['nuggets']:
+
+  #       # Stemmed word-bag for each nugget.
+  #       tokens = stem_words(remove_stop_words(tokenize(nugget_info['content'])))
+  #       all_nuggets.append(tokens)
+
+  # # Save corpus and dictionary
+  # dictionary = corpora.Dictionary(all_nuggets)
+  # corpus = [dictionary.doc2bow(tokens) for tokens in all_nuggets]
+  # pickle.dump(corpus, open('corpus.pkl', 'wb'))
+  # dictionary.save('dictionary.gensim')
+
+  # ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics=6, id2word=dictionary, passes=15)
+  # ldamodel.save('model6.gensim')
+  # topics = ldamodel.print_topics(num_words=15)
+  # for topic in topics:
+  #     print(topic)
   return render(request, index_html, context)
 
 

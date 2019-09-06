@@ -22,7 +22,7 @@
 
             {% for src_claim in slot_info.nuggets %}
                 <div class="src_claim item" data-id="{{ src_claim.id }}" style="padding:10px 0; position:relative;">
-                  {{ src_claim.content | safe | truncatechars:300 }}
+                  {{ src_claim.content | safe }}
                   <div class="ui small label">N{{ src_claim.id }}</div>
                     <div class="description action-bar"
                          style="margin-top: 10px; color:rgba(0,0,0,.4);">

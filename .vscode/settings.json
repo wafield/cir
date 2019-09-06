@@ -1,0 +1,6 @@
+{
+    "python.pythonPath": "/usr/local/bin/python",
+    "editor.highlightActiveIndentGuide": false,
+    "editor.renderIndentGuides": false,
+    "editor.tabSize": 2
+}

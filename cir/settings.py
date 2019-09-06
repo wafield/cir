@@ -1,6 +1,6 @@
 # Django settings for cir project.
 import os
-import socket
+# import socket
 
 DEBUG = True
 
@@ -12,7 +12,7 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-server_ip = socket.gethostbyname(socket.gethostname())
+# server_ip = socket.gethostbyname(socket.gethostname())
 
 # on local dev -- use different DB setups
 SERVER_HOST = '127.0.0.1'
@@ -219,7 +219,7 @@ INSTALLED_APPS = (
     'password_reset',
     'pipeline',
     'mptt',
-    'south',
+    # 'south',
 )
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
