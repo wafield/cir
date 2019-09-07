@@ -146,3 +146,8 @@ iframe[src^="//www.youtube.com"] {
 #message-details .highlight-found {
 	background-color: yellow;
 }
+
+.hitword {
+  font-weight: 700;
+  background-color: bisque;
+}

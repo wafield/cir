@@ -53,9 +53,15 @@ def put_claim(request):
   return HttpResponse(json.dumps(response), mimetype='application/json')
 
 def process_text(request):
+  # Processing the input draft claim, interpret, and annotate.
+
   content = request.REQUEST.get('content')
   words = stem_words(remove_stop_words(tokenize(content)))
-  return HttpResponse(json.dumps({'words': words}), mimetype='application/json')
+  pos = nltk.pos_tag(words)
+  return HttpResponse(json.dumps({
+    'words': words,
+    'pos': pos
+  }), mimetype='application/json')
 
 def add_nugget_to_claim(request):
   """
@@ -121,24 +127,40 @@ def get_nugget_list(request):
         for ref in target_claims:
           nugget_info['used_in_claims'].append(ref.to_claim.id)
         
-        # Stemmed word-bag for each nugget.
-        tokens = stem_words(remove_stop_words(tokenize(nugget_info['content'])))
-        all_nuggets.append(tokens)
 
-        vocabulary.update(tokens)
-        for word in tokens:
+        tokens = tokenize(nugget_info['content'])
+        tokens_stemed_non_stop = stem_words(remove_stop_words(tokens))
+
+        syn = {}
+        for i, token in enumerate(tokens):
+          token_stem = wn.morphy(token)
+          syn[i] = {
+            'token': token,
+            'token_stem': token_stem
+          }
+          if not token_stem or is_stop_word(token_stem):
+            continue
+          syn[i]['syn'] = synonyms(token)
+          syn[i]['hyp'] = hypohyper(token)
+
+        # Stemmed word-bag for each nugget.
+        all_nuggets.append(tokens_stemed_non_stop)
+
+        vocabulary.update(tokens_stemed_non_stop)
+        for word in tokens_stemed_non_stop:
           word_idf[word] += 1
         highlight = HighlightClaim.objects.get(claim_id=nugget_info['id']).highlight
         src_doc = highlight.context.docsection
 
-        topics_prob = ldamodel.get_document_topics(dictionary.doc2bow(tokens))
+        # topics_prob = ldamodel.get_document_topics(dictionary.doc2bow(tokens_stemed_non_stop))
 
 
         nuggets_metadata[nugget_info['id']] = {
           'cat': category,
           'slot_question': slot.title,
           'slot_id': slot.id,
-          'words': tokens,
+          'words': tokens_stemed_non_stop,
+          'syn': syn,
           'used_in_claims': nugget_info['used_in_claims'],
           'author_id': nugget_info['author_id'],
           'docsrc_author': get_doc_author(src_doc.title),
@@ -263,12 +285,16 @@ def put_claim_comment(request):
 def remove_stop_words(words):
   results = []
   for w in words:
-    if not w.isalpha():
-      continue
-    if w.lower() in stop_words:
-      continue
-    results.append(w.lower())
+    if not is_stop_word(w):
+      results.append(w.lower())    
   return results
+
+def is_stop_word(w):
+  if not w.isalpha():
+    return True
+  if w.lower() in stop_words:
+    return True
+  return False
 
 def stem_words(words):
   # Using WordNet lemmatizer.
@@ -279,6 +305,29 @@ def stem_words(words):
 
 def tokenize(sent):
   return word_tokenize(sent)
+
+
+def synonyms(token):
+  syn = []
+  for s in wn.synsets(token):
+    for l in s.lemmas():
+      if '_' not in l.name():
+        syn.append(l.name())
+  return list(set(syn))
+
+def hypohyper(token):
+  syn = []
+  for s in wn.synsets(token):
+    for hyp in s.hyponyms():
+      for l in hyp.lemmas():
+        if '_' not in l.name():
+          syn.append(l.name())
+    for hyp in s.hypernyms():
+      for l in hyp.lemmas():
+        if '_' not in l.name():
+          syn.append(l.name())
+
+  return list(set(syn))
 
 
 def get_doc_author(title):

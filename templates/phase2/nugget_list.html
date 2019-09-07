@@ -27,11 +27,10 @@
                ondragstart="onDragStart(event)" data-id="{{ src_claim.id }}">
             <div class="content">
               {{ src_claim.content | safe }}
-              <div class="ui small label">N{{ src_claim.id }}</div>
             </div>
             <div class="description action-bar"
                  style="margin-top: 10px; color:rgba(0,0,0,.4);">
-
+              [{{ src_claim.id }}]
               <b>{{ src_claim.author_name }}</b> on {{ src_claim.created_at_pretty }}
               <div class="actions" style="float:right;">
                 {% if src_claim.used_in_claims %}
