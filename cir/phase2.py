@@ -15,6 +15,7 @@ import gensim
 from cir.models import *
 import pickle
 from gensim import corpora
+from local_lexicon import *
 
 stop_words = stopwords.words('english') + list(punctuation)
 ps = PorterStemmer()
@@ -133,14 +134,14 @@ def get_nugget_list(request):
 
         syn = {}
         for i, token in enumerate(tokens):
-          token_stem = wn.morphy(token)
+          token_stem = wn.morphy(token.lower())
           syn[i] = {
             'token': token,
             'token_stem': token_stem
           }
-          if not token_stem or is_stop_word(token_stem):
+          if not token_stem or is_stop_word(token_stem) or is_stop_word(token):
             continue
-          syn[i]['syn'] = synonyms(token)
+          syn[i]['syn'], syn[i]['ant'] = synoanto(token)
           syn[i]['hyp'] = hypohyper(token)
 
         # Stemmed word-bag for each nugget.
@@ -307,27 +308,34 @@ def tokenize(sent):
   return word_tokenize(sent)
 
 
-def synonyms(token):
-  syn = []
+def synoanto(token):
+  syn = local_synonyms.get(token, [])
+  ant = local_antonyms.get(token, [])
   for s in wn.synsets(token):
     for l in s.lemmas():
-      if '_' not in l.name():
+      # if '_' not in l.name():
+      if l.name() not in local_synonyms_excl.get(token, []):
         syn.append(l.name())
-  return list(set(syn))
+      ant.extend([a.name() for a in l.antonyms()])
+
+  return list(set(syn)), list(set(ant))
+
 
 def hypohyper(token):
-  syn = []
+  hypohyper = local_hypohyper.get(token, [])
   for s in wn.synsets(token):
     for hyp in s.hyponyms():
       for l in hyp.lemmas():
-        if '_' not in l.name():
-          syn.append(l.name())
+        # if '_' not in l.name():
+        if l.name() not in local_hypohyper_excl.get(token, []):
+          hypohyper.append(l.name())
     for hyp in s.hypernyms():
       for l in hyp.lemmas():
-        if '_' not in l.name():
-          syn.append(l.name())
+        # if '_' not in l.name():
+        if l.name() not in local_hypohyper_excl.get(token, []):
+          hypohyper.append(l.name())
 
-  return list(set(syn))
+  return list(set(hypohyper))
 
 
 def get_doc_author(title):

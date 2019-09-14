@@ -150,6 +150,22 @@ define([
 		},
 	};
 
+	module.highlightKeywords = function($el, hitwords, hyps, antos) {
+		var content = $el.html().trim();
+		for (const hyp of hyps) {
+			var regex = new RegExp(`\\b(${hyp})\\b`, 'gi');
+			content = content.replace(regex, '<span class="hyp">$1</span>');
+		}
+		for (const anto of antos) {
+			var regex = new RegExp(`\\b(${anto})\\b`, 'gi');
+			content = content.replace(regex, '<span class="anto">$1</span>');
+		}
+		for (const hitWord of hitwords) {
+			var regex = new RegExp(`\\b(${hitWord})\\b`, 'gi');
+			content = content.replace(regex, '<span class="hitword">$1</span>');
+		}
+		return content;
+	}
 	return module;
 });
 

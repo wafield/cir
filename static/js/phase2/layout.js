@@ -85,37 +85,78 @@ define([
     $("#claim-list").on("click", ".add-claim", function(e) {
       module.curr_slot_id = $(this).parents('.statement-entry').data('id');
       $('#new-claim-form > div').insertAfter($(this)).show();
-      $('#new-claim-area').addClass('full-width');
+      $('.new-claim-area').addClass('full-width');
       module.refreshNuggetReco();
       // module.refreshFYIReco();
     });
 
-    $('#new-claim-content').on('keyup', function(e) {
-      clearTimeout(module.keyPressTimeout);
+    $("#claim-list").on("click", ".refresh-recos", function(e) {
+      e.preventDefault();
+
       var content = $('#new-claim-content').val();
-      if (content.trim().length == 0) return;
 
-      $('#rec-to-use').parent().addClass('loading');
-      $('#rec-fyi').parent().addClass('loading');
-
-      module.keyPressTimeout = setTimeout(function() {
-        $.ajax({
-          url: '/phase2/process_text/',
-          type: 'post',
-          data: {'content': content.trim()},
-          success: function(xhr) {
-            module.claim_words = xhr.words;
-            module.refreshNuggetReco();
-            // module.refreshFYIReco(true);
-          },
-          error: function(xhr) {
-            if (xhr.status == 403) {
-              Utils.notify('error', xhr.responseText);
-            }
+      // $('#rec-to-use').parent().addClass('loading');
+      $.ajax({
+        url: '/phase2/process_text/',
+        type: 'post',
+        data: {'content': content.trim()},
+        success: function(xhr) {
+          module.claim_words = xhr.words;
+          module.refreshNuggetReco();
+        },
+        error: function(xhr) {
+          if (xhr.status == 403) {
+            Utils.notify('error', xhr.responseText);
           }
-        });
-      }, 2000);
+        }
+      });
     });
+    $("#claim-list").on("click", ".concise-recos", function(e) {
+      e.preventDefault();
+      $('.new-claim-area').toggleClass('concise');
+    });
+
+    $('#claim-list').on('click', '.use-reco', function(e) {
+        e.preventDefault();
+        const nug_id = $(this).parents('.item').attr('data-nug-id');
+
+        var src_nugget = $(`#statement-container .src_claim[data-id=${nug_id}] .content`);
+        if (src_nugget.length == 0) return;
+    
+        module.current_used_nuggets.push(nug_id);
+        $('#nugget-area .placeholder').remove();
+        $('#nugget-area .list').append(src_nugget.first()
+            .clone().removeClass('content').addClass('item').attr('data-id', nug_id));
+    
+        module.refreshNuggetReco();
+    });
+
+    // $('#new-claim-content').on('keyup', function(e) {
+    //   clearTimeout(module.keyPressTimeout);
+    //   var content = $('#new-claim-content').val();
+    //   if (content.trim().length == 0) return;
+
+    //   $('#rec-to-use').parent().addClass('loading');
+    //   $('#rec-fyi').parent().addClass('loading');
+
+    //   module.keyPressTimeout = setTimeout(function() {
+    //     $.ajax({
+    //       url: '/phase2/process_text/',
+    //       type: 'post',
+    //       data: {'content': content.trim()},
+    //       success: function(xhr) {
+    //         module.claim_words = xhr.words;
+    //         module.refreshNuggetReco();
+    //         // module.refreshFYIReco(true);
+    //       },
+    //       error: function(xhr) {
+    //         if (xhr.status == 403) {
+    //           Utils.notify('error', xhr.responseText);
+    //         }
+    //       }
+    //     });
+    //   }, 2000);
+    // });
 
     $('#new-claim-form .button').on('click', function(e) {
       e.preventDefault();
@@ -309,7 +350,7 @@ define([
   module.initLayout();
 
   module.refreshNuggetReco = function() {
-    $('#rec-to-use').parent().addClass('loading');
+    // $('#rec-to-use').parent().addClass('loading');
 
     var currUserId = sessionStorage.getItem('user_id');
     var existing_claim_words = module.getExistingClaimWords();
@@ -332,59 +373,84 @@ define([
       );
     }
 
+    // Collect words that are used in currently chosen nuggets.
+    let wordBag = [];
+    let wordBagStemmed = [];
+    for (const nid of module.current_used_nuggets) {
+      const nugget = module.nuggets_metadata[nid];
+      for (wordIdx in nugget.syn) {
+        const tokenInfo = nugget.syn[wordIdx];
+        if (tokenInfo['syn']) {
+          wordBag.push(tokenInfo['token']);
+          wordBagStemmed.push(tokenInfo['token_stem']);
+        }
+      }
+    }
+
     // Find out top 5 in recommendation.
     var items = Object.keys(module.nuggets_metadata)
         .map(k => [k, module.nuggets_metadata[k]])
         .sort((first, second) => (second[1]['reco_score'] - first[1]['reco_score']))
         .slice(0, 10);
+
     $('#rec-to-use').html('');
     for (var i=0; i < items.length; i++) {
       var nid = items[i][0];
       var nug = items[i][1];
       var score = nug['reco_score'];
       var $src_nugget = $(`#statement-container .src_claim[data-id=${nid}] .content`);
-      // var tags = `<div class="ui blue circular label">${score.toPrecision(3)}</div>`;
+      
       var tags = '';
-      tags += `[${nid}]`;
-      tags += `<div class="ui circular label">Nov=${nug['novelty_over_existing_claims_tfidf'].toPrecision(3)}</div>`;
-      if (nug['same_question']) {
-        tags += `<div class="ui circular teal label">Same Q</div>`;
-      }
-      if (nug['is_not_by_me']) {
-        tags += `<div class="ui circular label">Not by Me</div>`;
-      }
-      if (nug['used_in'] > 0) {
-        tags += `<div class="ui circular label">Used=${nug['used_in']}</div>`;
-      }
-      var sim = nug['similar_to_chosen_tfidf'] +
-          nug['similar_to_claim_in_progress_tfidf'];
-      if (sim != 0) {
-        tags += `<div class="ui circular label">Sim=${sim.toPrecision(3)}</div>`;
-      }
+      tags += `<span>[${nid}]</span>`;
+      tags += `<span class="candidate-label">Score=${score.toPrecision(3)}</span>`;
+      tags += `<span class="candidate-label">Nov=${nug['novelty_over_existing_claims_tfidf'].toPrecision(3)}</span>`;
+      if (nug['same_question']) { tags += `<span class="candidate-label">Same Question</span>`; }
+      // if (nug['is_not_by_me']) { tags += `<span class="candidate-label">Not by Me</span>`; }
+      if (nug['used_in'] > 0) { tags += `<span class="candidate-label">Used=${nug['used_in']}</span>`; }
+      
+      var sim = nug['similar_to_chosen_tfidf'] + nug['similar_to_claim_in_progress_tfidf'];
+      if (sim != 0) { tags += `<span class="candidate-label">Sim=${sim.toPrecision(3)}</span>`; }
+
       var simsyn = nug['similar_to_claim_in_progress_synset'];
-      if (simsyn != 0) {
-        tags += `<div class="ui circular label">SimSyn=${simsyn.toPrecision(3)}</div>`;
-      }
+      if (simsyn != 0) { tags += `<span class="candidate-label">SimSyn=${simsyn.toPrecision(3)}</span>`; }
       
       /* Overall Tags */
-      if (nug['novelty_over_existing_claims_tfidf'] > 0.09) {
-        tags += `<div class="ui yellow circular label">Novel</div>`;
-      }
-      if (sim > 0.01) {
-        tags += `<div class="ui green circular label">Similar</div>`;
-      }
+      if (nug['novelty_over_existing_claims_tfidf'] > 0.09) { tags += `<span class="candidate-label">Novel</span>`; }
+      if (sim > 0.01) { tags += `<span class="candidate-label">Similar</span>`; }
 
-      var nugContent = $src_nugget.html().trim();
       // Find all hitWords from $src_nugget.html(), and stylize them.
-      for (const hitWord of nug['hit_words']) {
-        var regex = new RegExp(`(${hitWord})`, 'gi');
-        nugContent = nugContent.replace(regex, '<span class="hitword">$1</span>');
-      }
+      // Order matters!
+      var nugContent = Utils.highlightKeywords(
+        $src_nugget,
+        nug['hit_words'].concat(nug['hit_words_chosen_nugget']),
+        nug['hyperhypo'].concat(nug['hyperhypo_chosen_nugget']),
+        nug['antowords'].concat(nug['antowords_chosen_nugget'])
+      );
 
-      var $item = $('<div class="item">').html(nugContent + tags);
+
+      $(`#nugget-area .item`).each((idx, el) => {
+        // For each word in dictionary hits, highlight it in the chosen nuggets.
+        var nugContent = $(el).html().trim();
+        
+        for (const stem of nug['dictionary_hits']) {
+          for (var i = 0; i < wordBag.length; i ++) {
+            if (wordBagStemmed[i] == stem) {
+              // Highlight wordBag[i]
+              var regex = new RegExp(`\\b(${wordBag[i]})\\b`, 'gi');
+              nugContent = nugContent.replace(regex, '<span class="hitword">$1</span>');
+              $(el).html(nugContent);
+            }
+          }
+        }
+      });
+
+      // Find all dictionary hits from the chosen nuggets, and stylize them.
+      var $item = $(`<div class="item" data-nug-id="${nid}">`)
+      .html(nugContent + `<div class="label-container">${tags}</div>`
+      +`<a class="use-reco" href="#">Useful</a>`);
       $('#rec-to-use').append($item);
     }
-    setTimeout(() => $('#rec-to-use').parent().removeClass('loading'), 0);
+    // setTimeout(() => $('#rec-to-use').parent().removeClass('loading'), 0);
   };
 
   // module.refreshFYIReco = function() {

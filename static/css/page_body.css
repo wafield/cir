@@ -149,5 +149,56 @@ iframe[src^="//www.youtube.com"] {
 
 .hitword {
   font-weight: 700;
-  background-color: bisque;
+  background-color: #dbffce;
+}
+
+.hyp {
+  font-weight: 700;
+  background-color: #ffe9ce;
+}
+
+.anto {
+  font-weight: 700;
+  background-color: #ffcece;
+}
+
+#rec-to-use .label-container {
+  padding: 5px 0;
+  font-size: 12px;
+  margin: 5px 0;
+}
+#rec-to-use .candidate-label {
+  display: inline-block;
+  line-height: 1;
+  vertical-align: baseline;
+  margin: 3px;
+  background-color: #e8e8e8;
+  padding: 3px;
+  color: rgba(0,0,0,.6);
+  border: 0 solid transparent;
+  border-radius: 8px;
+}
+#rec-to-use .item {
+  position: relative;
+  font-size: 16px;
+}
+#rec-to-use .use-reco {
+  display: none;
+  position: absolute;
+  bottom: 15px;
+  right: 0;
+  font-variant: all-small-caps;
+}
+#rec-to-use .item:hover .use-reco {
+  display: block;
+
+}
+#new-claim-content {
+  font-size: 20px;
+}
+.new-claim-area.concise .label-container {
+  display: none;
+}
+.new-claim-area.concise #nugget-area {
+  display: none;
 }
