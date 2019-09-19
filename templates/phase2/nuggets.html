@@ -1,11 +1,11 @@
 <div class="category-list" data-list-type="finding">
     {% include 'phase2/nugget_list.html' with categories=categories.finding %}
+    {% include 'phase2/nugget_list.html' with categories=categories.pro %}
+    {% include 'phase2/nugget_list.html' with categories=categories.con %}
 </div>
 
 <div class="category-list" data-list-type="pro" style="display:none">
-    {% include 'phase2/nugget_list.html' with categories=categories.pro %}
 </div>
 
 <div class="category-list" data-list-type="con" style="display:none">
-    {% include 'phase2/nugget_list.html' with categories=categories.con %}
 </div>

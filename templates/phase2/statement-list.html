@@ -1,11 +1,11 @@
 {% for slot_info in categories %}
   <div class="ui vertical segment statement-entry" data-id="{{ slot_info.id }}"
        style="position:relative">
-    <h3 class="statement-question-title">
-      Question: {{ slot_info.slot_title }}</h3>
+    <h2 class="statement-question-title">
+      Question: {{ slot_info.slot_title }}</h2>
 
 
-    <div class="ui divided list" style="padding: 0 2em;">
+    <div class="ui divided list">
       {% if slot_info.claims %}
 
         {% for src_claim in slot_info.claims %}

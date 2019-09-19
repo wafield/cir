@@ -1,33 +1,37 @@
 local_synonyms = {
   # From: words in the candidate nuggets.
   # To: words in the input.
-  'expect': ['predict'],
-  'flat': ['static'],
-  'officer': ['police'],
-  'officers': ['police'],
-  'predictable': ['predict'],
-  'remain': ['remains'],
-  'remains': ['remains'],
-  'stagnant': ['static'],
+  'assessment': ['assess', 'assessed'],
+  'expect': [u'predict'],
+  'flat': [u'static'],
+  'officer': [u'police'],
+  'officers': [u'police'],
+  'predictable': [u'predict'],
+  'remain': [u'remains'],
+  'remains': [u'remains'],
+  'stagnant': [u'static'],
 }
 
 local_synonyms_excl = {
-  'assess': ['tax'],
-  'assessed': ['tax'],
-  'issue': ['cut'],
+  'assess': [u'tax'],
+  'assessed': [u'tax'],
+  'issue': [u'cut'],
+  'define': ['fix', 'fixed']
 }
 
 local_antonyms = {
-
+  'unattractive': [u'appealing', u'appeal']
 }
 
 local_hypohyper = {
-  'expenses': ['salary'],
-  'pension': ['salary'],
-  'pensions': ['salary'],
+  'expenses': [u'salary'],
+  'pension': [u'salary'],
+  'pensions': [u'salary'],
 
 }
 local_hypohyper_excl = {
-  'grow': ['cut'],
-  'growing': ['cut'],
+  'grow': [u'cut'],
+  'growing': [u'cut'],
+  'sales': [u'fair'],
+  'sale': [u'fair'],
 }

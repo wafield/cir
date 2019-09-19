@@ -18,7 +18,7 @@ define([
     // Consider whether this nugget is in the current draft
     nug['is_already_chosen'] = current_used_nuggets.includes(nid.toString());
     if (nug['is_already_chosen']) {
-      nug['score'] = -100000;
+      nug['reco_score'] = -100000;
       return;
     }
 
@@ -60,22 +60,6 @@ define([
     nug['hyperhypo_chosen_nugget'] = chosenNuggetMatch.hyperhypo;
     nug['antowords_chosen_nugget'] = chosenNuggetMatch.antowords;
     nug['dictionary_hits'] = chosenNuggetMatch.dictionaryHits;
-
-    // $(`#nugget-area .item`).each((idx, el) => {
-    //   // For each word in dictionary hits, highlight it in the chosen nuggets.
-    //   var nugContent = $(el).html().trim();
-      
-    //   for (const stem of chosenNuggetMatch.dictionaryHits) {
-    //     for (var i = 0; i < wordBag.length; i ++) {
-    //       if (wordBagStemmed[i] == stem) {
-    //         // Highlight wordBag[i]
-    //         var regex = new RegExp(`\\b(${wordBag[i]})\\b`, 'gi');
-    //         nugContent = nugContent.replace(regex, '<span class="hitword">$1</span>');
-    //         debugger;
-    //       }
-    //     }
-    //   }
-    // });
 
     // Consider if the nugget has a high verbal overlap with the claim-in-progress.
     // nug['similar_to_claim_in_progress'] = 1 - getVerbalNovelty(nug['words'], claim_words);
@@ -261,15 +245,19 @@ function getSynonymCountTfidf(nugget, dictionary) {
         let resSyn = overlapCount(tokenInfo['syn'], dictionary);
         if (resSyn.overlaps > 0) {
           dictionaryHits = dictionaryHits.concat(resSyn.words2hit);
+          // Is the token already in hitwords? If so, decay the score.
+          var decayCoefficient = Math.pow(0.3, hitWords.filter((w) => w == tokenInfo['token']).length);
           hitWords.push(tokenInfo['token']);
-          score += synWeight * resSyn.overlaps * nugget.tfidf[tokenInfo.token_stem];
+          score += synWeight * resSyn.overlaps * nugget.tfidf[tokenInfo.token_stem] * decayCoefficient;
         }
 
         let resHyp = overlapCount(tokenInfo['hyp'], dictionary);
         if (resHyp.overlaps > 0) {
           dictionaryHits = dictionaryHits.concat(resHyp.words2hit);
+          var decayCoefficient = Math.pow(0.3, hyperhypo.filter((w) => w == tokenInfo['token']).length);
+                    
           hyperhypo.push(tokenInfo['token']);
-          score += hypWeight * resHyp.overlaps * nugget.tfidf[tokenInfo.token_stem];
+          score += hypWeight * resHyp.overlaps * nugget.tfidf[tokenInfo.token_stem] * decayCoefficient;
         }
         let resAnt = overlapCount(tokenInfo['ant'], dictionary);
         if (resAnt.overlaps > 0) {
@@ -298,6 +286,8 @@ function getSynonymCountTfidf(nugget, dictionary) {
 
 
 function overlapCount(words1, words2) {
+  const decayFactor = 0.5;
+
   if (!words1 || !words2 || words1.length == 0 || words2.length == 0) return 0;
 
   let words1hit = [];

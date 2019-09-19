@@ -202,3 +202,11 @@ iframe[src^="//www.youtube.com"] {
 .new-claim-area.concise #nugget-area {
   display: none;
 }
+.src_claim {
+  font-size: 16px;
+}
+
+.src_claim .action-bar {
+  font-size: 14px;
+  margin: 10px 0;
+}

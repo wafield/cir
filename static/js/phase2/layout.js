@@ -407,11 +407,12 @@ define([
       if (nug['same_question']) { tags += `<span class="candidate-label">Same Question</span>`; }
       // if (nug['is_not_by_me']) { tags += `<span class="candidate-label">Not by Me</span>`; }
       if (nug['used_in'] > 0) { tags += `<span class="candidate-label">Used=${nug['used_in']}</span>`; }
+      else { tags += `<span class="candidate-label">Unused</span>`; }
       
       var sim = nug['similar_to_chosen_tfidf'] + nug['similar_to_claim_in_progress_tfidf'];
       if (sim != 0) { tags += `<span class="candidate-label">Sim=${sim.toPrecision(3)}</span>`; }
 
-      var simsyn = nug['similar_to_claim_in_progress_synset'];
+      var simsyn = nug['similar_to_claim_in_progress_synset']  ;
       if (simsyn != 0) { tags += `<span class="candidate-label">SimSyn=${simsyn.toPrecision(3)}</span>`; }
       
       /* Overall Tags */

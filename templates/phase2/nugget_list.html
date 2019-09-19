@@ -1,7 +1,7 @@
 {% for slot_info in categories %}
   <div class="ui vertical segment"
        data-id="{{ slot_info.id }}">
-    <h3>Question: {{ slot_info.slot_title }}</h3>
+    <h2>Question: {{ slot_info.slot_title }}</h2>
     <button class="show-workspace" data-id="{{ slot_info.id }}"
             style="display:none;">
       open workspace
@@ -19,7 +19,7 @@
       </div>
     {% endif %}
 
-    <div class="ui divided list" style="padding: 0 2em;">
+    <div class="ui divided list">
       {% if slot_info.nuggets %}
 
         {% for src_claim in slot_info.nuggets %}
