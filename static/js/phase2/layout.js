@@ -494,10 +494,11 @@ define([
   };
 
   module.auto_eval = async function() {
-    console.log("Start auto eval.");
     for (let method of TestCases.methods) {
 
       let avg_top_5 = 0, avg_top_10 = 0;
+      let avg_top_5_pre = 0, avg_top_10_pre = 0;
+      let avg_top_5_rec = 0, avg_top_10_rec = 0;
       for (let tc of TestCases.ground_truth) {
         const result = await eval_tc(tc);
         module.claim_words = result.words;
@@ -513,21 +514,29 @@ define([
         tc['top_5_recl'] = (1 + top_5_correct) / (1 + tc.nuggets.length);
         tc['top_5_fmeasure'] = (tc['top_5_accu'] + tc['top_5_recl'] == 0) ? 0 : (2*tc['top_5_accu']*tc['top_5_recl']/(tc['top_5_accu'] + tc['top_5_recl']));
         avg_top_5 += tc['top_5_fmeasure']
+        avg_top_5_pre += tc['top_5_accu']
+        avg_top_5_rec += tc['top_5_recl']
   
         var top_10_correct = correctCount(top_results.slice(0, 10), tc.nuggets);
         tc['top_10_accu'] = (1 + top_10_correct) / (1 + Math.min(10, tc.nuggets.length));
         tc['top_10_recl'] = (1 + top_10_correct) / (1 + tc.nuggets.length);
         tc['top_10_fmeasure'] = (tc['top_10_accu'] + tc['top_10_recl'] == 0) ? 0 : (2*tc['top_10_accu']*tc['top_10_recl']/(tc['top_10_accu'] + tc['top_10_recl']));
         avg_top_10 += tc['top_10_fmeasure']
+        avg_top_10_pre += tc['top_10_accu']
+        avg_top_10_rec += tc['top_10_recl']
   
         // console.log(`method=${method.name}, q=${tc.input}: avgtop5=${avg_top_5} top10=${avg_top_10}`);  
       }
       avg_top_5 /= TestCases.ground_truth.length;
       avg_top_10 /= TestCases.ground_truth.length;
+      avg_top_5_pre /= TestCases.ground_truth.length;
+      avg_top_5_rec /= TestCases.ground_truth.length;
+      avg_top_10_pre /= TestCases.ground_truth.length;
+      avg_top_10_rec /= TestCases.ground_truth.length;
   
-      console.log(`method=${method.name}: avgtop5=${avg_top_5.toPrecision(3)} avgtop10=${avg_top_10.toPrecision(3)}`);
+      console.log(`${method.name}: top5: p=${avg_top_5_pre}, r=${avg_top_5_rec}, f=${avg_top_5.toPrecision(3)}`);
+      console.log(`${method.name}: top10: p=${avg_top_10_pre}, r=${avg_top_10_rec}, f=${avg_top_10.toPrecision(3)}`);
     }
-    console.log("End auto eval.");
   };
   return module;
 });
