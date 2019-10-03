@@ -210,3 +210,7 @@ iframe[src^="//www.youtube.com"] {
   font-size: 14px;
   margin: 10px 0;
 }
+
+.reco-features .ui.checkbox {
+  margin-right: 10px;
+}

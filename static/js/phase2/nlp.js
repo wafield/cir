@@ -13,7 +13,8 @@ define([
     current_used_nuggets,
     chosen_nugget_words,
     claim_words,
-    nuggets_metadata
+    nuggets_metadata,
+    metrics_to_use
   ) {
     // Consider whether this nugget is in the current draft
     nug['is_already_chosen'] = current_used_nuggets.includes(nid.toString());
@@ -21,26 +22,43 @@ define([
       nug['reco_score'] = -100000;
       return;
     }
-
     // TODO: make use of existing claim--nugget relationship. Claims from other people - what nuggets did they use?
 
     var currUserId = sessionStorage.getItem('user_id');
 
+    //************* Signals not really used ************/
     // Consider nugget's author info, true if not by me.
     nug['is_not_by_me'] = (nug.author_id != currUserId);
-
-    // Consider nugget's word vector info
-    nug['novelty_over_existing_claims'] = getVerbalNovelty(nug['words'], existing_claim_words);
-    nug['novelty_over_existing_claims_tfidf'] = getVerbalNoveltyTfidf(nug, existing_claim_words);
+    // Consider whether this nugget has been used
+    nug['used_in'] = nug['used_in_claims'].length;
 
     // Consider which question the nugget answers
     nug['same_question'] = (nug['slot_id'] == curr_slot_id);
 
-    // Consider whether this nugget has been used
-    nug['used_in'] = nug['used_in_claims'].length;
+    //************* Similarity with the draft claim ************/
+
+    // Consider nugget's word vector info
+    nug['novelty_over_existing_claims'] = module.getVerbalNovelty(nug['words'], existing_claim_words);
+    nug['novelty_over_existing_claims_tfidf'] = module.getVerbalNoveltyTfidf(nug, existing_claim_words);
+
+    // Consider if the nugget has a high verbal overlap with the claim-in-progress.
+    // nug['similar_to_claim_in_progress'] = 1 - getVerbalNovelty(nug['words'], claim_words);
+    nug['similar_to_claim_in_progress'] = getOccurrenceCount(nug['words'], claim_words);
+    nug['similar_to_claim_in_progress_tfidf'] = getOccurrenceCountTfidf(nug, claim_words);
+    
+    let draftClaimMatch = getSynonymCountTfidf(nug, claim_words);
+    nug['similar_to_claim_in_progress_synset'] = draftClaimMatch.score;
+    nug['similar_to_claim_in_progress_synset_tcidf'] = draftClaimMatch.score_tcidf;
+
+    // These words are ready to be highlighted in the candidate nuggets.
+    nug['hit_words'] = draftClaimMatch.hitWords;
+    nug['hyperhypo'] = draftClaimMatch.hyperhypo;
+    nug['antowords'] = draftClaimMatch.antowords;
+
+    //************* Similarity with the chosen nuggets ************/
 
     // Consider whether this nugget has a high word similarity with chosen nuggets.
-    nug['similar_to_chosen'] = 1 - getVerbalNovelty(nug['words'], chosen_nugget_words);
+    nug['similar_to_chosen'] = 1 - module.getVerbalNovelty(nug['words'], chosen_nugget_words);
     nug['similar_to_chosen_tfidf'] = getVerbalSimilarityTfidf(nug, chosen_nugget_words);
 
     let wordBagStemmed = [];
@@ -54,6 +72,7 @@ define([
 
     let chosenNuggetMatch = getSynonymCountTfidf(nug, wordBagStemmed);
     nug['similar_to_chosen_synset'] = chosenNuggetMatch.score;
+    nug['similar_to_chosen_synset_tcidf'] = chosenNuggetMatch.score_tcidf;
     
     // These words are ready to be highlighted in the chosen nuggets.
     nug['hit_words_chosen_nugget'] = chosenNuggetMatch.hitWords;
@@ -61,18 +80,6 @@ define([
     nug['antowords_chosen_nugget'] = chosenNuggetMatch.antowords;
     nug['dictionary_hits'] = chosenNuggetMatch.dictionaryHits;
 
-    // Consider if the nugget has a high verbal overlap with the claim-in-progress.
-    // nug['similar_to_claim_in_progress'] = 1 - getVerbalNovelty(nug['words'], claim_words);
-    nug['similar_to_claim_in_progress'] = getOccurrenceCount(nug['words'], claim_words);
-    nug['similar_to_claim_in_progress_tfidf'] = getOccurrenceCountTfidf(nug, claim_words);
-    
-    let draftClaimMatch = getSynonymCountTfidf(nug, claim_words);
-    nug['similar_to_claim_in_progress_synset'] = draftClaimMatch.score;
-
-    // These words are ready to be highlighted in the candidate nuggets.
-    nug['hit_words'] = draftClaimMatch.hitWords;
-    nug['hyperhypo'] = draftClaimMatch.hyperhypo;
-    nug['antowords'] = draftClaimMatch.antowords;
 
     // Consider whether this nugget is from the same docsection with one chosen nugget.
     nug['same_doc_section'] = current_used_nuggets.map(
@@ -102,43 +109,57 @@ define([
         }
       }
     }
-    nug['reco_score'] =
+
+    // Manual evaluation - query checkboxes.
+    if (!metrics_to_use) {
+      nug['reco_score'] = 0
       // (nug['same_original_author'] ? 1 : 0)
 
       /* Scenario 1 */
       // + (nug['is_not_by_me'] ? 1: 0)
       // + nug['novelty_over_existing_claims_tfidf'] * 10 // novelty of candidate nugget over existing claims.
-      + (nug['same_question'] ? 10: 0)
+      + ($('input[name="ks"]').is(':checked') ? (nug['same_question'] ? 10: 0) : 0)
       // - nug['used_in'] * 4
 
       /* Scenario 2 - some nuggets are selected */
       // + nug['similar_to_chosen_tfidf'] * 20
       // + (nug['same_doc_section'] ? 10: 0) // source provenance.
-      // + (nug['same_doc_section'] ? (Math.pow(1.008, -nug['src_token_distance']) * 80) : 0)  // document context provenance.
-      + nug['similar_to_chosen_synset'] * 100
+      + ($('input[name="dc"]').is(':checked') ? (nug['same_doc_section'] ? (Math.pow(1.008, -nug['src_token_distance']) * 80) : 0) : 0)  // document context provenance.
+      
+      + ($('input[name="chosennuggetsynset"]').is(':checked') ? nug['similar_to_chosen_synset'] * 100 : 0)
 
       /* Scenario 3 - claim content is partially written */
-      // + nug['similar_to_claim_in_progress'] 
-      // + nug['similar_to_claim_in_progress_tfidf'] * 100
-      + nug['similar_to_claim_in_progress_synset'] * 100
+      + ($('input[name="text"]').is(':checked') ? nug['similar_to_claim_in_progress'] : 0)
 
+      + ($('input[name="texttfidf"]').is(':checked') ? nug['similar_to_claim_in_progress_tfidf'] * 100 : 0)
+
+      + ($('input[name="textsynset"]').is(':checked') ? nug['similar_to_claim_in_progress_synset'] * 100 : 0)
+      
+      + ($('input[name="textsynsettcidf"]').is(':checked') ? nug['similar_to_claim_in_progress_synset_tcidf'] * 100 : 0)
+    } else {
+      nug['reco_score'] = 0;
+      for (const metric of metrics_to_use) {
+        if (typeof nug[metric.name] == 'boolean') {
+          nug['reco_score'] += (nug[metric.name] ? metric.weight : 0);
+        } else {
+          nug['reco_score'] += (nug[metric.name] * metric.weight);
+        }
+      }
+    }
   };
 
 
-  return module;
-});
-
-
 /**
- *
+ * Novelty of "words" over "dictionary".
+ * How much of "words" are not covered by "dictionary"?
  * @param words ['a', 'b', 'c', 'd']
  * @param dictionary ['a', 'b', 'c'] or {'a': 5, 'b': 3}
- * @returns {number} novelty = 1/4.
+ * @returns {number} novelty, between 0 and 1. 1 means totally new.
  */
-function getVerbalNovelty(words, dictionary) {
-  var size = words.length;
+module.getVerbalNovelty = function(words, dictionary) {
+  var wordSize = words.length;
   var difference = 0;
-  for (var i = 0; i < size; i ++) {
+  for (var i = 0; i < wordSize; i ++) {
     if (Array.isArray(dictionary)) {
       if (!dictionary.includes(words[i])) {
         difference ++;
@@ -149,19 +170,25 @@ function getVerbalNovelty(words, dictionary) {
       }
     }
   }
-  return difference / size;
+  return difference / wordSize;
 };
 
-function getVerbalNoveltyTfidf(nug, dictionary) {
-  var score = 0;
+module.getVerbalNoveltyTfidf = function(nug, dictionary) {
+  var difference = 0;
   for (let word in nug['tfidf']) {
     if (typeof dictionary == 'object' && !(word in dictionary)) {
-      score += nug['tfidf'][word];
+      difference += nug['tfidf'][word];
     }
   }
   // Normalize by nugget length.
-  return score / nug['words'].length;
+  return difference / nug['words'].length;
 };
+
+
+  return module;
+});
+
+
 
 function getVerbalSimilarityTfidf(nug, dictionary) {
   var score = 0;
@@ -175,22 +202,7 @@ function getVerbalSimilarityTfidf(nug, dictionary) {
 }
 
 
-/**
- *
- * @param selected nuggets [ 1, 3, 5 ]
- * @param target claim's nugget collection [1, 3, 5, 7]
- * @returns {number} 3 / 4.
- */
-function getNuggetOverlap(selected, target) {
-  var size = target.length;
-  var overlap = 0;
-  for (var i = 0; i < size; i ++) {
-    if (selected.includes(target[i].toString())) {
-      overlap ++;
-    }
-  }
-  return overlap / size;
-}
+
 
 /**
  * Times words from text show up in dictionary.
@@ -229,9 +241,12 @@ function getOccurrenceCountTfidf(nugget, dictionary) {
 function getSynonymCountTfidf(nugget, dictionary) {
   // All these are raw tokens. Not stemmed.
   let hitWords = [], hyperhypo = [], antowords = [];
-  let dictionaryHits = [];
+  
+  // which words in the chosen nuggets match words from the candidate nuggets?
+  let dictionaryHits = []; 
 
   let score = 0.0;
+  let score_tcidf = 0.0; // this one doesn't depend on nugget's length.
 
   const synWeight = 3.0;
   const antoWeight = 1.0;
@@ -249,6 +264,7 @@ function getSynonymCountTfidf(nugget, dictionary) {
           var decayCoefficient = Math.pow(0.3, hitWords.filter((w) => w == tokenInfo['token']).length);
           hitWords.push(tokenInfo['token']);
           score += synWeight * resSyn.overlaps * nugget.tfidf[tokenInfo.token_stem] * decayCoefficient;
+          score_tcidf += synWeight * resSyn.overlaps * nugget.tcidf[tokenInfo.token_stem] * decayCoefficient;
         }
 
         let resHyp = overlapCount(tokenInfo['hyp'], dictionary);
@@ -258,12 +274,14 @@ function getSynonymCountTfidf(nugget, dictionary) {
                     
           hyperhypo.push(tokenInfo['token']);
           score += hypWeight * resHyp.overlaps * nugget.tfidf[tokenInfo.token_stem] * decayCoefficient;
+          score_tcidf += hypWeight * resHyp.overlaps * nugget.tcidf[tokenInfo.token_stem] * decayCoefficient;
         }
         let resAnt = overlapCount(tokenInfo['ant'], dictionary);
         if (resAnt.overlaps > 0) {
           dictionaryHits = dictionaryHits.concat(resAnt.words2hit);
           antowords.push(tokenInfo['token']);
           score += antoWeight * resAnt.overlaps * nugget.tfidf[tokenInfo.token_stem];
+          score_tcidf += antoWeight * resAnt.overlaps * nugget.tcidf[tokenInfo.token_stem];
         }
       }
     }
@@ -277,6 +295,7 @@ function getSynonymCountTfidf(nugget, dictionary) {
   
   return {
     score: dictionary.length == 0 ? 0 : score / dictionary.length, 
+    score_tcidf: dictionary.length == 0 ? 0 : score_tcidf / dictionary.length,
     hitWords: hitWords,
     hyperhypo: hyperhypo,
     antowords: antowords,

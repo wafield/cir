@@ -2,11 +2,13 @@ define([
   'utils',
   'doc/qa',
   'phase2/nlp',
+  'phase2/testcases',
   'semantic-ui',
 ], function(
     Utils,
     QA,
-    NLP
+    NLP,
+    TestCases
 ) {
   QA.updateQuestionList();
 
@@ -23,7 +25,6 @@ define([
       data: {},
       success: function(xhr) {
         $('#statement-container').html(xhr.html);
-        // module.nugget_claim_usage = xhr.nugget_claim_usage;
         module.nuggets_metadata = xhr.nuggets_metadata;
         console.log(xhr.nuggets_metadata);
       },
@@ -87,7 +88,7 @@ define([
       $('#new-claim-form > div').insertAfter($(this)).show();
       $('.new-claim-area').addClass('full-width');
       module.refreshNuggetReco();
-      // module.refreshFYIReco();
+      module.refreshFYIReco();
     });
 
     $("#claim-list").on("click", ".refresh-recos", function(e) {
@@ -95,7 +96,6 @@ define([
 
       var content = $('#new-claim-content').val();
 
-      // $('#rec-to-use').parent().addClass('loading');
       $.ajax({
         url: '/phase2/process_text/',
         type: 'post',
@@ -103,6 +103,7 @@ define([
         success: function(xhr) {
           module.claim_words = xhr.words;
           module.refreshNuggetReco();
+          module.refreshFYIReco();
         },
         error: function(xhr) {
           if (xhr.status == 403) {
@@ -127,38 +128,9 @@ define([
         $('#nugget-area .placeholder').remove();
         $('#nugget-area .list').append(src_nugget.first()
             .clone().removeClass('content').addClass('item').attr('data-id', nug_id));
-    
-        module.refreshNuggetReco();
     });
 
-    // $('#new-claim-content').on('keyup', function(e) {
-    //   clearTimeout(module.keyPressTimeout);
-    //   var content = $('#new-claim-content').val();
-    //   if (content.trim().length == 0) return;
-
-    //   $('#rec-to-use').parent().addClass('loading');
-    //   $('#rec-fyi').parent().addClass('loading');
-
-    //   module.keyPressTimeout = setTimeout(function() {
-    //     $.ajax({
-    //       url: '/phase2/process_text/',
-    //       type: 'post',
-    //       data: {'content': content.trim()},
-    //       success: function(xhr) {
-    //         module.claim_words = xhr.words;
-    //         module.refreshNuggetReco();
-    //         // module.refreshFYIReco(true);
-    //       },
-    //       error: function(xhr) {
-    //         if (xhr.status == 403) {
-    //           Utils.notify('error', xhr.responseText);
-    //         }
-    //       }
-    //     });
-    //   }, 2000);
-    // });
-
-    $('#new-claim-form .button').on('click', function(e) {
+    $('#new-claim-form .submit.button').on('click', function(e) {
       e.preventDefault();
       if (!module.current_used_nuggets || !module.curr_slot_id) return;
       $.ajax({
@@ -276,6 +248,7 @@ define([
     }).on("click", ".claim-comment-reply", function() {
       $(this).closest(".content").find(".form").show()
     });
+
   };
 
   module.initLayout = function() {
@@ -299,6 +272,10 @@ define([
       $('#slot-overview').find('.category-list').hide();
       var category = $(this).attr("data-id");
       $('#slot-overview').find('.category-list[data-list-type=' + category + ']').show();
+    });
+
+    $('.auto-eval').on('click', () => {
+      module.auto_eval();
     });
 
     window.onDragStart = function(event) {
@@ -344,15 +321,12 @@ define([
         .clone().removeClass('content').addClass('item'));
 
     module.refreshNuggetReco();
-    // module.refreshFYIReco();
+    module.refreshFYIReco();
   };
 
   module.initLayout();
 
-  module.refreshNuggetReco = function() {
-    // $('#rec-to-use').parent().addClass('loading');
-
-    var currUserId = sessionStorage.getItem('user_id');
+  module.refreshNuggetReco = function(update_ui = true, metrics_to_use = null) {
     var existing_claim_words = module.getExistingClaimWords();
     var chosen_nugget_words = module.getChosenNuggetWords();
 
@@ -369,7 +343,8 @@ define([
         module.current_used_nuggets,
         chosen_nugget_words,
         module.claim_words,
-        module.nuggets_metadata
+        module.nuggets_metadata,
+        metrics_to_use
       );
     }
 
@@ -387,7 +362,9 @@ define([
       }
     }
 
-    // Find out top 5 in recommendation.
+    if (!update_ui) return;  // Do nothing if this is auto evaluation mode.
+
+    // Find out top N in recommendation.
     var items = Object.keys(module.nuggets_metadata)
         .map(k => [k, module.nuggets_metadata[k]])
         .sort((first, second) => (second[1]['reco_score'] - first[1]['reco_score']))
@@ -401,7 +378,7 @@ define([
       var $src_nugget = $(`#statement-container .src_claim[data-id=${nid}] .content`);
       
       var tags = '';
-      tags += `<span>[${nid}]</span>`;
+      tags += `<span><div class="ui circular label">${i+1}</div>[${nid}]</span>`;
       tags += `<span class="candidate-label">Score=${score.toPrecision(3)}</span>`;
       tags += `<span class="candidate-label">Nov=${nug['novelty_over_existing_claims_tfidf'].toPrecision(3)}</span>`;
       if (nug['same_question']) { tags += `<span class="candidate-label">Same Question</span>`; }
@@ -451,45 +428,42 @@ define([
       +`<a class="use-reco" href="#">Useful</a>`);
       $('#rec-to-use').append($item);
     }
-    // setTimeout(() => $('#rec-to-use').parent().removeClass('loading'), 0);
   };
 
-  // module.refreshFYIReco = function() {
-  //   $('#rec-fyi').parent().addClass('loading');
+  module.refreshFYIReco = function() {
+    $('#rec-fyi').parent().hide();
+    var fyi_claims = [];
 
-  //   var recommendable_claims = [];
+    // Check each existing claim, and see if there's overlap with current draft.
+    for (var cid in module.claims_metadata) {
+      if (!module.claims_metadata.hasOwnProperty(cid)) continue;
 
-  //   for (var cid in module.claims_metadata) {
-  //     if (!module.claims_metadata.hasOwnProperty(cid)) continue;
+      var claim = module.claims_metadata[cid];
 
-  //     var claim = module.claims_metadata[cid];
+      // Consider if this claim's source nuggets overlaps with the currently chosen
+      // nuggets.
+      claim['dup_by_nugget_collection'] = getNuggetOverlap(module.current_used_nuggets, claim.src_nuggets);
 
-  //     // Consider if this claim's source nuggets overlaps with the currently chosen
-  //     // nuggets.
-  //     claim['dup_by_nugget_collection'] = module.getNuggetOverlap(module.current_used_nuggets, claim.src_nuggets);
+      // TODO: add TF-IDF and concept mapping to getVerbalNovelty.
+      claim['draft_novelty_over_this_claim'] = NLP.getVerbalNovelty(module.claim_words, claim['words']);
 
-  //     claim['dup_by_claim_in_progress'] = module.getVerbalNovelty(claim['words'], module.claim_words);
+      if (claim['draft_novelty_over_this_claim'] < 0.5) {
+        fyi_claims.push(cid);
+      }
+    }
 
-  //     if (claim['dup_by_nugget_collection'] > 0.5) {
-  //       claim['fyi_reason'] = 'Dup';
-  //       recommendable_claims.push(cid);
-  //     }
-  //   }
-
-  //   $('#rec-fyi').html('');
-  //   for (var i = 0; i < recommendable_claims.length; i++) {
-  //     var cid = recommendable_claims[i];
-  //     var reason = module.claims_metadata[cid]['fyi_reason'];
-  //     var src_claim = $(`#claim-list .src_claim[data-id=${cid}] .content`);
-  //     var $item = $('<div class="item">')
-  //         .html(
-  //             src_claim.html() +
-  //             `<div class="ui blue circular label">${reason}</div>`
-  //         );
-  //     $('#rec-fyi').append($item);
-  //   }
-  //   setTimeout(() => $('#rec-fyi').parent().removeClass('loading'), 500);
-  // };
+    $('#rec-fyi').html('');
+    for (var i = 0; i < fyi_claims.length; i++) {
+      var cid = fyi_claims[i];
+      var src_claim = $(`#claim-list .src_claim[data-id=${cid}] .content`);
+      var $item = $('<div class="item">')
+          .html(
+              src_claim.html()
+          );
+      $('#rec-fyi').append($item);
+      $('#rec-fyi').parent().show();
+    }
+  };
 
   module.getExistingClaimWords = function() {
     var words = {};
@@ -519,5 +493,82 @@ define([
     return words;
   };
 
+  module.auto_eval = async function() {
+    console.log("Start auto eval.");
+    for (let method of TestCases.methods) {
+
+      let avg_top_5 = 0, avg_top_10 = 0;
+      for (let tc of TestCases.ground_truth) {
+        const result = await eval_tc(tc);
+        module.claim_words = result.words;
+        module.refreshNuggetReco(false, method.metrics_to_use);
+  
+        var top_results = Object.keys(module.nuggets_metadata)
+        .map(k => [k, module.nuggets_metadata[k]])
+        .sort((first, second) => (second[1]['reco_score'] - first[1]['reco_score']))
+        .map(k => parseInt(k[0]));
+  
+        var top_5_correct = correctCount(top_results.slice(0, 5), tc.nuggets);
+        tc['top_5_accu'] = (1 + top_5_correct) / (1 + Math.min(5, tc.nuggets.length));
+        tc['top_5_recl'] = (1 + top_5_correct) / (1 + tc.nuggets.length);
+        tc['top_5_fmeasure'] = (tc['top_5_accu'] + tc['top_5_recl'] == 0) ? 0 : (2*tc['top_5_accu']*tc['top_5_recl']/(tc['top_5_accu'] + tc['top_5_recl']));
+        avg_top_5 += tc['top_5_fmeasure']
+  
+        var top_10_correct = correctCount(top_results.slice(0, 10), tc.nuggets);
+        tc['top_10_accu'] = (1 + top_10_correct) / (1 + Math.min(10, tc.nuggets.length));
+        tc['top_10_recl'] = (1 + top_10_correct) / (1 + tc.nuggets.length);
+        tc['top_10_fmeasure'] = (tc['top_10_accu'] + tc['top_10_recl'] == 0) ? 0 : (2*tc['top_10_accu']*tc['top_10_recl']/(tc['top_10_accu'] + tc['top_10_recl']));
+        avg_top_10 += tc['top_10_fmeasure']
+  
+        // console.log(`method=${method.name}, q=${tc.input}: avgtop5=${avg_top_5} top10=${avg_top_10}`);  
+      }
+      avg_top_5 /= TestCases.ground_truth.length;
+      avg_top_10 /= TestCases.ground_truth.length;
+  
+      console.log(`method=${method.name}: avgtop5=${avg_top_5.toPrecision(3)} avgtop10=${avg_top_10.toPrecision(3)}`);
+    }
+    console.log("End auto eval.");
+  };
   return module;
 });
+
+async function eval_tc(tc) {
+  let result;
+  try {
+    result = await $.ajax({
+      url: '/phase2/process_text/',
+      type: 'post',
+      data: {'content': tc.input.trim()}
+    });
+    return result;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+/**
+ *
+ * @param selected nuggets [ 1, 3, 5 ]
+ * @param target claim's nugget collection [1, 3, 5, 7]
+ * @returns {number} 3 / 4.
+ */
+function getNuggetOverlap(selected, target) {
+  var size = target.length;
+  var overlap = 0;
+  for (var i = 0; i < size; i ++) {
+    if (selected.includes(target[i].toString())) {
+      overlap ++;
+    }
+  }
+  return overlap / size;
+}
+
+function correctCount(results, ground_truth) {
+  var hit = 0;
+  for (var i = 0; i < results.length; i ++) {
+    if (ground_truth.includes(results[i])) {
+      hit ++;
+    }
+  }
+  return hit;
+}

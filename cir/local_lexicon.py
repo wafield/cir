@@ -20,13 +20,19 @@ local_synonyms_excl = {
 }
 
 local_antonyms = {
-  'unattractive': [u'appealing', u'appeal']
+  'unattractive': [u'appealing', u'appeal'],
+  'change': ['static', 'stagnant'],
+  'changed': ['static', 'stagnant'],
+  'deter': ['attract', 'appeal', 'appealing', 'attractive'],
+  'deterring': ['attract', 'appeal', 'appealing', 'attractive'],
 }
 
 local_hypohyper = {
   'expenses': [u'salary'],
   'pension': [u'salary'],
   'pensions': [u'salary'],
+  'personnel': ['employee'],
+  'benefits': ['salary', 'salaries'],
 
 }
 local_hypohyper_excl = {

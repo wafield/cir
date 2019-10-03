@@ -36,7 +36,10 @@
       <textarea name="new-claim-content" id="new-claim-content"
                 rows="3"></textarea>
     </div>
-    <button class="ui button field" type="submit">Submit</button>
+    <div class="field">
+      <button class="ui submit button" type="submit">Submit</button>
+      <button class="ui button refresh-recos">Refresh Recommendations</button>
+    </div>
   </div>
 
   <div id="nugget-area" class="ui attached segment">
@@ -49,10 +52,19 @@
       </div>
     </div>
   </div>
+  <div class="ui attached segment" style="color:#9f3a38;background-color:#fff6f6">
+    <h3 class="ui header" style="color:#9f3a38;background-color:#fff6f6">
+      Your claim may have been covered by the following claim(s):
+      <div class="sub header" style="display:none;">
+        These may duplicate / contradict with the claim-in-progress.
+      </div>
+    </h3>
+    <div id="rec-fyi" class="ui relaxed divided list" style="position:relative"></div>
+  </div>
   <div class="ui attached segment">
     <h3 class="ui header">
       Consider these nuggets...
-      <a href="" class="refresh-recos" style="float:right;font-variant:all-small-caps">Refresh</a>
+      <a href="" class="refresh-recos" style="float:right;font-variant:all-small-caps;display:none">Refresh</a>
       <a href="" class="concise-recos" style="float:right;font-variant:all-small-caps;margin:0 5px">Concise</a>
       <div class="sub header" style="display:none;">
         These are less used, from similar origin with the ones you selected,
@@ -75,14 +87,4 @@
     <div id="rec-to-use" class="ui relaxed divided list"
          style="position:relative"></div>
   </div>
-
-  <section class="ui segment" style="display:none">
-    <h3 class="ui header">
-      Your claim may have been covered in the following claims:
-      <div class="sub header" style="display:none;">
-        These may duplicate / contradict with the claim-in-progress.
-      </div>
-    </h3>
-    <div id="rec-fyi" class="ui relaxed divided list" style="position:relative"></div>
-  </section>
 </div>

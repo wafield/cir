@@ -3,7 +3,8 @@
          class="item"
          data-title="Issue Description"
          data-content="{{ forum_description }}"
-         data-variation="very wide">
+         data-variation="very wide"
+				 style="display:none">
 		{{ forum_name }}
 	</div>
 	<div class="ui dropdown blue item" tabindex="0">
@@ -14,6 +15,41 @@
 			<a href="/{{ forum_url }}/phase/{{ phase.name }}" class="item {{ phase.status }}">{{ phase.fullname }}</a>
 		{% endfor %}
 		</div>
+	</div>
+	<div class="item reco-features">
+		<div class="ui checkbox">
+			<input type="checkbox" name="ks">
+			<label>KS</label>
+		</div>
+		<div class="ui checkbox">
+			<input type="checkbox" name="text">
+			<label>Text</label>
+		</div>
+		<div class="ui checkbox">
+			<input type="checkbox" name="texttfidf">
+			<label>TFIDF</label>
+		</div>
+		<div class="ui checkbox">
+			<input type="checkbox" name="textsynset">
+			<label>Synset</label>
+		</div>
+		<div class="ui checkbox">
+			<input type="checkbox" name="textsynsettcidf">
+			<label>Synset (TCIDF)</label>
+		</div>
+	</div>
+	<div class="item reco-features">
+		<div class="ui checkbox">
+			<input type="checkbox" name="dc" value="dc">
+			<label>Document Context</label>
+		</div>			
+		<div class="ui checkbox">
+			<input type="checkbox" name="chosennuggetsynset" value="chosennuggetsynset">
+			<label>Chosen Nugget Synset</label>
+		</div>					
+	</div>
+	<div class="item">
+		<div class="ui button primary auto-eval">Auto Eval</div>
 	</div>
 
 	<a id="qa-panel-toggle" class="ui item" style="display:none" href="#">

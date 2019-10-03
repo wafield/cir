@@ -182,9 +182,11 @@ def get_nugget_list(request):
   for nug_id in nuggets_metadata:
     nug_metadata = nuggets_metadata[nug_id]
     nug_metadata['tfidf'] = {}
+    nug_metadata['tcidf'] = {}
     words = nug_metadata['words']
     for w in set(words):
       nug_metadata['tfidf'][w] = float(words.count(w)) / len(words) * word_idf[w]
+      nug_metadata['tcidf'][w] = float(words.count(w)) * word_idf[w]
    
   response['nuggets_metadata'] = nuggets_metadata
   response['html'] = render_to_string('phase2/nuggets.html', context)
