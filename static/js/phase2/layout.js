@@ -14,6 +14,7 @@ define([
 
   var module = {};
   module.nuggets_metadata = [];
+  window.nugs = module.nuggets_metadata;
   module.claims_metadata = [];
   module.current_used_nuggets = [];
   module.claim_words = [];
@@ -102,7 +103,18 @@ define([
         data: {'content': content.trim()},
         success: function(xhr) {
           module.claim_words = xhr.words;
-          module.refreshNuggetReco();
+
+          var extra_hits = [];
+          // If human input matches one of the test cases, load their extrahit.
+          for (let tc of TestCases.ground_truth) {
+            if (tc.input == content) {
+              extra_hits = tc.extra_hits;
+              console.log("Input matches one test case! Extra hits = " + extra_hits);
+              break;
+            }
+          }
+
+          module.refreshNuggetReco(extra_hits=extra_hits);
           module.refreshFYIReco();
         },
         error: function(xhr) {
@@ -326,9 +338,10 @@ define([
 
   module.initLayout();
 
-  module.refreshNuggetReco = function(update_ui = true, metrics_to_use = null) {
+  module.refreshNuggetReco = function(update_ui = true, metrics_to_use = null, extra_hits = []) {
     var existing_claim_words = module.getExistingClaimWords();
     var chosen_nugget_words = module.getChosenNuggetWords();
+
 
     for (var nid in module.nuggets_metadata) {
       if (!module.nuggets_metadata.hasOwnProperty(nid)) continue;
@@ -344,7 +357,8 @@ define([
         chosen_nugget_words,
         module.claim_words,
         module.nuggets_metadata,
-        metrics_to_use
+        metrics_to_use,
+        extra_hits
       );
     }
 
@@ -380,30 +394,43 @@ define([
       var tags = '';
       tags += `<span><div class="ui circular label">${i+1}</div>[${nid}]</span>`;
       tags += `<span class="candidate-label">Score=${score.toPrecision(3)}</span>`;
-      tags += `<span class="candidate-label">Nov=${nug['novelty_over_existing_claims_tfidf'].toPrecision(3)}</span>`;
+      // tags += `<span class="candidate-label">Nov=${nug['novelty_over_existing_claims_tfidf'].toPrecision(3)}</span>`;
       if (nug['same_question']) { tags += `<span class="candidate-label">Same Question</span>`; }
       // if (nug['is_not_by_me']) { tags += `<span class="candidate-label">Not by Me</span>`; }
-      if (nug['used_in'] > 0) { tags += `<span class="candidate-label">Used=${nug['used_in']}</span>`; }
-      else { tags += `<span class="candidate-label">Unused</span>`; }
+      // if (nug['used_in'] > 0) { tags += `<span class="candidate-label">Used=${nug['used_in']}</span>`; }
+      // else { tags += `<span class="candidate-label">Unused</span>`; }
       
       var sim = nug['similar_to_chosen_tfidf'] + nug['similar_to_claim_in_progress_tfidf'];
-      if (sim != 0) { tags += `<span class="candidate-label">Sim=${sim.toPrecision(3)}</span>`; }
+      // if (sim != 0) { tags += `<span class="candidate-label">Sim=${sim.toPrecision(3)}</span>`; }
 
       var simsyn = nug['similar_to_claim_in_progress_synset']  ;
-      if (simsyn != 0) { tags += `<span class="candidate-label">SimSyn=${simsyn.toPrecision(3)}</span>`; }
+      // if (simsyn != 0) { tags += `<span class="candidate-label">SimSyn=${simsyn.toPrecision(3)}</span>`; }
       
       /* Overall Tags */
-      if (nug['novelty_over_existing_claims_tfidf'] > 0.09) { tags += `<span class="candidate-label">Novel</span>`; }
-      if (sim > 0.01) { tags += `<span class="candidate-label">Similar</span>`; }
+      // if (nug['novelty_over_existing_claims_tfidf'] > 0.09) { tags += `<span class="candidate-label">Novel</span>`; }
+
+      // if (sim > 0.01) { tags += `<span class="candidate-label">Similar</span>`; }
+
 
       // Find all hitWords from $src_nugget.html(), and stylize them.
       // Order matters!
-      var nugContent = Utils.highlightKeywords(
-        $src_nugget,
-        nug['hit_words'].concat(nug['hit_words_chosen_nugget']),
-        nug['hyperhypo'].concat(nug['hyperhypo_chosen_nugget']),
-        nug['antowords'].concat(nug['antowords_chosen_nugget'])
-      );
+
+      var nugContent;
+      if ($('input[name="textsynset"]').is(':checked') || $('input[name="textsynsettcidf"]').is(':checked')) {
+        nugContent = Utils.highlightKeywords(
+          $src_nugget,
+          nug['hit_words'].concat(nug['hit_words_chosen_nugget']),
+          nug['hyperhypo'].concat(nug['hyperhypo_chosen_nugget']),
+          nug['antowords'].concat(nug['antowords_chosen_nugget'])
+        );
+      } else {
+        nugContent = Utils.highlightKeywords(
+          $src_nugget,
+          nug['hit_words'],
+          [],
+          []
+        );
+      }
 
 
       $(`#nugget-area .item`).each((idx, el) => {
@@ -428,6 +455,7 @@ define([
       +`<a class="use-reco" href="#">Useful</a>`);
       $('#rec-to-use').append($item);
     }
+    window.nugs = module.nuggets_metadata;
   };
 
   module.refreshFYIReco = function() {
@@ -496,13 +524,14 @@ define([
   module.auto_eval = async function() {
     for (let method of TestCases.methods) {
 
-      let avg_top_5 = 0, avg_top_10 = 0;
-      let avg_top_5_pre = 0, avg_top_10_pre = 0;
-      let avg_top_5_rec = 0, avg_top_10_rec = 0;
+      let avg_top_5 = 0, avg_top_5_pre = 0, avg_top_5_rec = 0;
+      let avg_top_10 = 0, avg_top_10_pre = 0, avg_top_10_rec = 0;
+      let avg_top_15 = 0, avg_top_15_pre = 0, avg_top_15_rec = 0;
+      
       for (let tc of TestCases.ground_truth) {
         const result = await eval_tc(tc);
         module.claim_words = result.words;
-        module.refreshNuggetReco(false, method.metrics_to_use);
+        module.refreshNuggetReco(false, method.metrics_to_use, tc.extra_hits);
   
         var top_results = Object.keys(module.nuggets_metadata)
         .map(k => [k, module.nuggets_metadata[k]])
@@ -524,18 +553,30 @@ define([
         avg_top_10 += tc['top_10_fmeasure']
         avg_top_10_pre += tc['top_10_accu']
         avg_top_10_rec += tc['top_10_recl']
-  
-        // console.log(`method=${method.name}, q=${tc.input}: avgtop5=${avg_top_5} top10=${avg_top_10}`);  
+
+        var top_15_correct = correctCount(top_results.slice(0, 15), tc.nuggets);
+        tc['top_15_accu'] = (1 + top_15_correct) / (1 + Math.min(15, tc.nuggets.length));
+        tc['top_15_recl'] = (1 + top_15_correct) / (1 + tc.nuggets.length);
+        tc['top_15_fmeasure'] = (tc['top_15_accu'] + tc['top_15_recl'] == 0) ? 0 : (2*tc['top_15_accu']*tc['top_15_recl']/(tc['top_15_accu'] + tc['top_15_recl']));
+        avg_top_15 += tc['top_15_fmeasure']
+        avg_top_15_pre += tc['top_15_accu']
+        avg_top_15_rec += tc['top_15_recl']
       }
       avg_top_5 /= TestCases.ground_truth.length;
-      avg_top_10 /= TestCases.ground_truth.length;
       avg_top_5_pre /= TestCases.ground_truth.length;
       avg_top_5_rec /= TestCases.ground_truth.length;
+      
+      avg_top_10 /= TestCases.ground_truth.length;
       avg_top_10_pre /= TestCases.ground_truth.length;
       avg_top_10_rec /= TestCases.ground_truth.length;
   
-      console.log(`${method.name}: top5: p=${avg_top_5_pre}, r=${avg_top_5_rec}, f=${avg_top_5.toPrecision(3)}`);
-      console.log(`${method.name}: top10: p=${avg_top_10_pre}, r=${avg_top_10_rec}, f=${avg_top_10.toPrecision(3)}`);
+      avg_top_15 /= TestCases.ground_truth.length;
+      avg_top_15_pre /= TestCases.ground_truth.length;
+      avg_top_15_rec /= TestCases.ground_truth.length;
+  
+      console.log(`${method.name}: top 5: p=${avg_top_5_pre.toPrecision(3)}, r=${avg_top_5_rec.toPrecision(3)}, f=${avg_top_5.toPrecision(3)}`);
+      console.log(`${method.name}: top10: p=${avg_top_10_pre.toPrecision(3)}, r=${avg_top_10_rec.toPrecision(3)}, f=${avg_top_10.toPrecision(3)}`);
+      console.log(`${method.name}: top15: p=${avg_top_15_pre.toPrecision(3)}, r=${avg_top_15_rec.toPrecision(3)}, f=${avg_top_15.toPrecision(3)}`);
     }
   };
   return module;

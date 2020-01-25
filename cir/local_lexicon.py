@@ -12,6 +12,10 @@ local_synonyms = {
   'stagnant': [u'static'],
 }
 
+extra_relation = {
+
+}
+
 local_synonyms_excl = {
   'assess': [u'tax'],
   'assessed': [u'tax'],

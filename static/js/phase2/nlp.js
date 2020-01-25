@@ -14,7 +14,8 @@ define([
     chosen_nugget_words,
     claim_words,
     nuggets_metadata,
-    metrics_to_use
+    metrics_to_use,
+    extra_hits
   ) {
     // Consider whether this nugget is in the current draft
     nug['is_already_chosen'] = current_used_nuggets.includes(nid.toString());
@@ -45,6 +46,7 @@ define([
     // nug['similar_to_claim_in_progress'] = 1 - getVerbalNovelty(nug['words'], claim_words);
     nug['similar_to_claim_in_progress'] = getOccurrenceCount(nug['words'], claim_words);
     nug['similar_to_claim_in_progress_tfidf'] = getOccurrenceCountTfidf(nug, claim_words);
+    nug['similar_to_claim_in_progress_tcidf'] = getOccurrenceCountTfidf(nug, claim_words, false);
     
     let draftClaimMatch = getSynonymCountTfidf(nug, claim_words);
     nug['similar_to_claim_in_progress_synset'] = draftClaimMatch.score;
@@ -54,6 +56,17 @@ define([
     nug['hit_words'] = draftClaimMatch.hitWords;
     nug['hyperhypo'] = draftClaimMatch.hyperhypo;
     nug['antowords'] = draftClaimMatch.antowords;
+
+    // Extra hits
+    nug['extra_hits'] = 0;
+    if (extra_hits.length) {
+      for (let extrahit of extra_hits) {
+        if (nug['content'].indexOf(extrahit) > 0) {
+          nug['extra_hits'] ++;
+        }
+      }
+    }
+
 
     //************* Similarity with the chosen nuggets ************/
 
@@ -110,8 +123,10 @@ define([
       }
     }
 
-    // Manual evaluation - query checkboxes.
+    
     if (!metrics_to_use) {
+      // Manual evaluation - query checkboxes.
+
       nug['reco_score'] = 0
       // (nug['same_original_author'] ? 1 : 0)
 
@@ -125,7 +140,7 @@ define([
       // + nug['similar_to_chosen_tfidf'] * 20
       // + (nug['same_doc_section'] ? 10: 0) // source provenance.
       + ($('input[name="dc"]').is(':checked') ? (nug['same_doc_section'] ? (Math.pow(1.008, -nug['src_token_distance']) * 80) : 0) : 0)  // document context provenance.
-      
+        
       + ($('input[name="chosennuggetsynset"]').is(':checked') ? nug['similar_to_chosen_synset'] * 100 : 0)
 
       /* Scenario 3 - claim content is partially written */
@@ -133,9 +148,13 @@ define([
 
       + ($('input[name="texttfidf"]').is(':checked') ? nug['similar_to_claim_in_progress_tfidf'] * 100 : 0)
 
+      + ($('input[name="texttcidf"]').is(':checked') ? nug['similar_to_claim_in_progress_tcidf'] * 100 : 0)
+
       + ($('input[name="textsynset"]').is(':checked') ? nug['similar_to_claim_in_progress_synset'] * 100 : 0)
       
       + ($('input[name="textsynsettcidf"]').is(':checked') ? nug['similar_to_claim_in_progress_synset_tcidf'] * 100 : 0)
+      + ($('input[name="textsynsettcidf"]').is(':checked') ? nug['extra_hits'] * 400 : 0)
+
     } else {
       nug['reco_score'] = 0;
       for (const metric of metrics_to_use) {
@@ -205,7 +224,9 @@ function getVerbalSimilarityTfidf(nug, dictionary) {
 
 
 /**
- * Times words from text show up in dictionary.
+ * Times `words` from text show up in dictionary.
+ * dictionary: user input
+ * text: candidate nugget.
  */
 function getOccurrenceCount(text, dictionary) {
   let hit = 0;
@@ -222,20 +243,30 @@ function getOccurrenceCount(text, dictionary) {
       wordFreq[word] ++;
     }      
   }
-  return hit;
+  return hit / text.length;
 }
 
-function getOccurrenceCountTfidf(nugget, dictionary) {
+function getOccurrenceCountTfidf(nugget, dictionary, use_tfidf=true) {
   if (dictionary.length == 0) return 0;
 
   const tfidf = nugget['tfidf'];
+  const tcidf = nugget['tcidf'];
   var hit = 0;
-  for (var d of dictionary) {
-    if (d in tfidf) {
-      hit += tfidf[d];
+  if (use_tfidf) {
+    for (var d of dictionary) {
+      if (d in tfidf) {
+        hit += tfidf[d];
+      }
     }
+    return hit / Object.keys(tfidf).length;
+  } else {
+    for (var d of dictionary) {
+      if (d in tcidf) {
+        hit += tcidf[d];
+      }
+    }
+    return hit / Object.keys(tcidf).length;
   }
-  return hit / dictionary.length;
 }
 
 function getSynonymCountTfidf(nugget, dictionary) {

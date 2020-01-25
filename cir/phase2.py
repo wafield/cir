@@ -160,6 +160,7 @@ def get_nugget_list(request):
           'cat': category,
           'slot_question': slot.title,
           'slot_id': slot.id,
+          'content': nugget_info['content'].lower(),
           'words': tokens_stemed_non_stop,
           'syn': syn,
           'used_in_claims': nugget_info['used_in_claims'],
