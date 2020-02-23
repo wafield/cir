@@ -146,7 +146,7 @@ define([
       /* Scenario 3 - claim content is partially written */
       + ($('input[name="text"]').is(':checked') ? nug['similar_to_claim_in_progress'] : 0)
 
-      + ($('input[name="texttfidf"]').is(':checked') ? nug['similar_to_claim_in_progress_tfidf'] * 100 : 0)
+      + ($('input[name="texttfidf"]').is(':checked') ? nug['similar_to_claim_in_progress_tfidf'] * 10000 : 0)
 
       + ($('input[name="texttcidf"]').is(':checked') ? nug['similar_to_claim_in_progress_tcidf'] * 100 : 0)
 
