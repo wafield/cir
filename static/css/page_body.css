@@ -199,7 +199,7 @@ iframe[src^="//www.youtube.com"] {
 .new-claim-area.concise .label-container {
   display: none;
 }
-.new-claim-area.concise #nugget-area {
+.new-claim-area #nugget-area {
   display: none;
 }
 .src_claim {
